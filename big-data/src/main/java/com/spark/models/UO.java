@@ -1,13 +1,16 @@
 package com.spark.models;
 
+import org.apache.spark.sql.Row;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * @author Taras Zubrei
  */
-public class Record implements Serializable{
+public class UO implements Serializable{
     private Long id;
     private String name;
     private String shortName;
@@ -17,10 +20,10 @@ public class Record implements Serializable{
     private String stan;
     private List<String> founders;
 
-    public Record() {
+    public UO() {
     }
 
-    public Record(Long id, String name, String shortName, String address, String boss, String kved, String stan, List<String> founders) {
+    public UO(Long id, String name, String shortName, String address, String boss, String kved, String stan, List<String> founders) {
         this.id = id;
         this.name = name;
         this.shortName = shortName;
@@ -29,6 +32,19 @@ public class Record implements Serializable{
         this.kved = kved;
         this.stan = stan;
         this.founders = founders;
+    }
+
+    public static UO fromXml(Row row) {
+        return new UO(
+                row.getLong(0),
+                row.getString(1),
+                row.getString(2),
+                row.getString(3),
+                row.getString(4),
+                row.getString(5),
+                row.getString(6),
+                row.get(7) != null ? row.<Row>getAs(7).getList(0) : new ArrayList<>()
+        );
     }
 
     public Long getId() {
@@ -98,16 +114,16 @@ public class Record implements Serializable{
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Record)) return false;
-        Record record = (Record) o;
-        return Objects.equals(id, record.id) &&
-                Objects.equals(name, record.name) &&
-                Objects.equals(shortName, record.shortName) &&
-                Objects.equals(address, record.address) &&
-                Objects.equals(boss, record.boss) &&
-                Objects.equals(kved, record.kved) &&
-                Objects.equals(stan, record.stan) &&
-                Objects.equals(founders, record.founders);
+        if (!(o instanceof UO)) return false;
+        UO uo = (UO) o;
+        return Objects.equals(id, uo.id) &&
+                Objects.equals(name, uo.name) &&
+                Objects.equals(shortName, uo.shortName) &&
+                Objects.equals(address, uo.address) &&
+                Objects.equals(boss, uo.boss) &&
+                Objects.equals(kved, uo.kved) &&
+                Objects.equals(stan, uo.stan) &&
+                Objects.equals(founders, uo.founders);
     }
 
     @Override
@@ -117,7 +133,7 @@ public class Record implements Serializable{
 
     @Override
     public String toString() {
-        return "Record{" +
+        return "UO{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", shortName='" + shortName + '\'' +
