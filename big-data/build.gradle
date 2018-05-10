@@ -8,7 +8,10 @@ buildscript{
 dependencies {
     compile "com.databricks:spark-xml_2.11:0.4.1"
     compile 'org.apache.spark:spark-sql_2.11:2.3.0'
-    compile 'org.apache.spark:spark-core_2.11:2.3.0'
+    compile ('org.apache.spark:spark-core_2.11:2.3.0') {
+        exclude group: 'org.apache.hadoop'
+    }
+    compile 'org.apache.hadoop:hadoop-client:2.8.3'
 
     compile('org.redisson:redisson:3.3.0') {
         exclude group: 'com.fasterxml.jackson.core'
@@ -18,6 +21,6 @@ dependencies {
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.6.7'
 
     compile libs.commons.lang
-//    compile libs.guava
+    compile libs.guava
     testCompile libs.test.junit
 }
