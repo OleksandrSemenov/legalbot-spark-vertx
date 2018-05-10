@@ -37,7 +37,8 @@ public class Main {
 
         ds.filter((FilterFunction<Record>) Main::isChanged)
                 .foreach((ForeachFunction<Record>) t -> {
-                    redissonClient.getBucket("record/" + t.getId()).set(t);
+                    redissonClient.getBucket("record/" + t.getId() + "/value").set(t);
+                    redissonClient.getBucket("record/" + t.getId() + "/hash").set(t.hashCode());
                     System.err.println("New data: " + t);
                 });
 
@@ -46,7 +47,7 @@ public class Main {
     }
 
     private static boolean isChanged(Record record) {
-        return !Objects.equals(redissonClient.getBucket("record/" + record.getId()).get(), record);
+        return !Objects.equals(redissonClient.getBucket("record/" + record.getId() + "/hash").get(), record.hashCode());
     }
 
     private static Record parse(Row row) {
