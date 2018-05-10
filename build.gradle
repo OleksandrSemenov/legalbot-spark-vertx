@@ -23,5 +23,11 @@ subprojects {
         compile libs.logging.slf4j_api
         compile libs.logging.logback_core
         compile libs.logging.logback_classic
+        compile libs.logging.log4j_over_slf4j
+    }
+
+    configurations.all {
+        exclude group: "org.slf4j", module: "slf4j-log4j12"
+        exclude group: "log4j", module: "log4j"
     }
 }
