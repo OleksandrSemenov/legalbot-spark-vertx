@@ -1,23 +1,22 @@
 package com.spark.models;
 
 import org.apache.spark.sql.Row;
+import reactor.core.support.UUIDUtils;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Objects;
 
 /**
  * @author Taras Zubrei
  */
 public class FOP {
-    private Long id;
+    private String id;
     private String name;
     private String address;
     private String kved;
     private String stan;
 
     public FOP() {
-        this.id = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().getEpochSecond();
+        this.id = UUIDUtils.create().toString();
     }
 
     public FOP(String name, String address, String kved, String stan) {
@@ -37,8 +36,12 @@ public class FOP {
         );
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
