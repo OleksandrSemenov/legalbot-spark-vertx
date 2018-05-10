@@ -1,5 +1,6 @@
 package com.spark.service.impl;
 
+import com.google.inject.Inject;
 import com.spark.service.SparkService;
 import com.spark.util.SparkUtil;
 import org.apache.spark.sql.SparkSession;
@@ -14,6 +15,7 @@ public class SparkServiceImpl implements SparkService, Serializable {
     private final SparkSession session;
     private final RedissonClient redisson;
 
+    @Inject
     public SparkServiceImpl(SparkSession session, RedissonClient redisson) {
         this.session = session;
         this.redisson = redisson;

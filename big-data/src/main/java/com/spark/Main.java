@@ -1,7 +1,12 @@
 package com.spark;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.spark.service.SparkService;
 import com.spark.service.impl.SparkServiceImpl;
+import com.spark.verticles.RestVerticle;
+import io.vertx.rxjava.core.Vertx;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
@@ -13,16 +18,30 @@ import org.redisson.api.RedissonClient;
  */
 public class Main {
     public static void main(String[] args) {
-        JavaSparkContext sc = new JavaSparkContext(new SparkConf().setAppName("open-data").setMaster("local"));
-        RedissonClient redissonClient = Redisson.create();
-        final SparkSession session = new SparkSession(sc.sc());
-        final SparkService sparkService = new SparkServiceImpl(session, redissonClient);
+        final Injector injector = Guice.createInjector(new GuiceModule());
+        final SparkService sparkService = injector.getInstance(SparkService.class);
 
-        sparkService.parseFOPXml("big-data/src/main/resources/fop.xml");
-        sparkService.parseUOXml("big-data/src/main/resources/uo.xml");
+        Vertx rxVertx = Vertx.vertx();
+        io.vertx.core.Vertx vertx = (io.vertx.core.Vertx) rxVertx.getDelegate();
+        vertx.deployVerticle(new RestVerticle(sparkService));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            vertx.close();
+            injector.getInstance(SparkSession.class).close();
+            injector.getInstance(JavaSparkContext.class).close();
+            injector.getInstance(RedissonClient.class).shutdown();
+        }));
+    }
 
-        session.close();
-        sc.close();
-        redissonClient.shutdown();
+    private static class GuiceModule extends AbstractModule {
+        @Override
+        protected void configure() {
+            final SparkConf sparkConf = new SparkConf().setAppName("open-data").setMaster("local");
+            final JavaSparkContext sc = new JavaSparkContext(sparkConf);
+            bind(SparkConf.class).toInstance(sparkConf);
+            bind(JavaSparkContext.class).toInstance(sc);
+            bind(RedissonClient.class).toInstance(Redisson.create());
+            bind(SparkSession.class).toInstance(new SparkSession(sc.sc()));
+            bind(SparkService.class).to(SparkServiceImpl.class);
+        }
     }
 }
