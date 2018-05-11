@@ -29,10 +29,10 @@ public class FOP {
 
     public static FOP fromXml(Row row) {
         return new FOP(
-                row.getString(0),
-                row.getString(1),
-                row.getString(2),
-                row.getString(3)
+                row.getString(0).trim(),
+                row.getString(1).trim(),
+                row.getString(2).trim(),
+                row.getString(3).trim()
         );
     }
 

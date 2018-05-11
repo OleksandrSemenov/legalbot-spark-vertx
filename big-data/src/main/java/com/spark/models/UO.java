@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * @author Taras Zubrei
  */
@@ -37,13 +39,13 @@ public class UO implements Serializable{
     public static UO fromXml(Row row) {
         return new UO(
                 row.getLong(0),
-                row.getString(1),
-                row.getString(2),
-                row.getString(3),
-                row.getString(4),
-                row.getString(5),
-                row.getString(6),
-                row.get(7) != null ? row.<Row>getAs(7).getList(0) : new ArrayList<>()
+                row.getString(1).trim(),
+                row.getString(2).trim(),
+                row.getString(3).trim(),
+                row.getString(4).trim(),
+                row.getString(5).trim(),
+                row.getString(6).trim(),
+                row.get(7) != null ? row.<Row>getAs(7).<String>getList(0).stream().map(String::trim).collect(toList()) : new ArrayList<>()
         );
     }
 
