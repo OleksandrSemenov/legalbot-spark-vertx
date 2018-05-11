@@ -11,6 +11,8 @@ import io.vertx.rxjava.ext.web.handler.StaticHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 /**
  * @author Taras Zubrei
  */
@@ -29,11 +31,11 @@ public class RestVerticle extends AbstractVerticle {
         router.route().handler(BodyHandler.create());
 
         router.post("/parse/uo").handler(ctx -> vertx.executeBlocking(future -> {
-            sparkService.parseUOXml(ctx.getBodyAsString());
+            sparkService.parseUOXml(ctx.getBodyAsString(), Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false));
             future.complete();
         }, res -> ctx.response().setStatusCode(200).end()));
         router.post("/parse/fop").handler(ctx -> vertx.executeBlocking(future -> {
-            sparkService.parseFOPXml(ctx.getBodyAsString());
+            sparkService.parseFOPXml(ctx.getBodyAsString(), Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false));
             future.complete();
         }, res -> ctx.response().setStatusCode(200).end()));
         router.route("/").handler(routingContext -> {

@@ -5,5 +5,10 @@ package com.spark.service;
  */
 public interface SparkService {
     void parseFOPXml(String path);
+
     void parseUOXml(String path);
+
+    void parseFOPXml(String path, boolean initial);
+
+    void parseUOXml(String path, boolean initial);
 }

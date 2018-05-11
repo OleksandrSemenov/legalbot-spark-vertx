@@ -23,11 +23,21 @@ public class SparkServiceImpl implements SparkService, Serializable {
 
     @Override
     public void parseFOPXml(String path) {
-        SparkUtil.parseFOP(session, redisson, path);
+        SparkUtil.parseFOP(session, redisson, path, false);
     }
 
     @Override
     public void parseUOXml(String path) {
-        SparkUtil.parseUO(session, redisson, path);
+        SparkUtil.parseUO(session, redisson, path, false);
+    }
+
+    @Override
+    public void parseFOPXml(String path, boolean initial) {
+        SparkUtil.parseFOP(session, redisson, path, initial);
+    }
+
+    @Override
+    public void parseUOXml(String path, boolean initial) {
+        SparkUtil.parseUO(session, redisson, path, initial);
     }
 }
