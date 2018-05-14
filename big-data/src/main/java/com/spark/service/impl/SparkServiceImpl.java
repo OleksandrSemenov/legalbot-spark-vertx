@@ -43,9 +43,11 @@ public class SparkServiceImpl implements SparkService, Serializable {
             final String extractFolder = FileUtil.unzip(zipFile);
             parseUOXml(Paths.get(extractFolder, "15.1-EX_XML_EDR_UO.xml").toString(), initial);
             parseFOPXml(Paths.get(extractFolder, "15.2-EX_XML_EDR_FOP.xml").toString(), initial);
+            lastUpdatedBucket.set(archiveUrl.getDate().toString());
+            logger.info("Successfully parsed new UFOP data for date: {}", archiveUrl.getDate());
+        } else {
+            logger.info("Data in db ({}) is the most recent. Archive date: {}", lastUpdated, archiveUrl.getDate());
         }
-        lastUpdatedBucket.set(archiveUrl.getDate().toString());
-        logger.info("Successfully parsed new UFOP data for date: {}", archiveUrl.getDate());
     }
 
     @Override
