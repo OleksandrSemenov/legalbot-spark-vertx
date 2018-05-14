@@ -31,12 +31,13 @@ public class FileUtil {
         }
     }
 
-    public static void unzip(String path) {
+    public static String unzip(String path) {
         try {
             final ZipFile zipFile = new ZipFile(path);
             final String extractPath = Paths.get(Paths.get(path).getParent().toString(), Paths.get(path).getFileName().toString().substring(0, 8)).toString();
             zipFile.extractAll(extractPath);
             logger.info("Successfully extracted files from zip file: {} to directory: {}", path, extractPath);
+            return extractPath;
         } catch (ZipException e) {
             throw new IllegalStateException("Failed to unzip file at: " + path, e);
         }
