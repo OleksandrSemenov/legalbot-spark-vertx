@@ -1,5 +1,6 @@
 package com.spark.models;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.Row;
 import reactor.core.support.UUIDUtils;
 
@@ -21,18 +22,18 @@ public class FOP {
 
     public FOP(String name, String address, String kved, String stan) {
         this();
-        this.name = name;
-        this.address = address;
-        this.kved = kved;
-        this.stan = stan;
+        if (StringUtils.isNotBlank(name)) this.name = name.trim();
+        if (StringUtils.isNotBlank(address)) this.address = address.trim();
+        if (StringUtils.isNotBlank(kved)) this.kved = kved.trim();
+        if (StringUtils.isNotBlank(stan)) this.stan = stan.trim();
     }
 
     public static FOP fromXml(Row row) {
         return new FOP(
-                row.getString(0).trim(),
-                row.getString(1).trim(),
-                row.getString(2).trim(),
-                row.getString(3).trim()
+                row.getString(0),
+                row.getString(1),
+                row.getString(2),
+                row.getString(3)
         );
     }
 
