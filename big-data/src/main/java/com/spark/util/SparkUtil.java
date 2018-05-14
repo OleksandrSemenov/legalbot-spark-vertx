@@ -61,8 +61,7 @@ public class SparkUtil {
                 .load(path)
                 .select("FIO", "ADDRESS", "KVED", "STAN")
                 .toJavaRDD()
-                .map(FOP::fromXml)
-                .foreach(t -> redisson.getList("fop").add(t));
+                .foreach(t -> redisson.getList("fop").add(FOP.fromXml(t)));
         if (!initial) System.err.println("New data size: " + redisson.getList("fop").size());
     }
 
