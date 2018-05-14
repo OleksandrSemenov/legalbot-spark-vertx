@@ -3,12 +3,6 @@ package com.spark.util;
 import com.spark.models.FOP;
 import com.spark.models.UO;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.FilterFunction;
-import org.apache.spark.api.java.function.ForeachFunction;
-import org.apache.spark.api.java.function.MapFunction;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Encoders;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;
 import org.redisson.api.RMap;
@@ -16,7 +10,6 @@ import org.redisson.api.RedissonClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Taras Zubrei
@@ -59,27 +52,21 @@ public class SparkUtil {
 
     public static void parseFOP(SparkSession session, RedissonClient redissonClient, String path, boolean initial) {
         redisson = redissonClient;
-        Dataset<FOP> ds = session.read()
+        redisson.getList("fop").delete();
+        session.read()
                 .format("com.databricks.spark.xml")
                 .option("rootTag", "DATA")
                 .option("rowTag", "RECORD")
                 .option("charset", "windows-1251")
                 .load(path)
                 .select("FIO", "ADDRESS", "KVED", "STAN")
-                .map((MapFunction<Row, FOP>) FOP::fromXml, Encoders.bean(FOP.class));
-        ds.filter((FilterFunction<FOP>) SparkUtil::isChanged)
-                .foreach((ForeachFunction<FOP>) t -> {
-                    redisson.getBucket("fop/" + t.getId() + "/value").set(t);
-                    redisson.getBucket("fop/" + t.getId() + "/hash").set(t.hashCode());
-                    System.err.println("New data: " + t);
-                });
+                .toJavaRDD()
+                .map(FOP::fromXml)
+                .foreach(t -> redisson.getList("fop").add(t));
+        if (!initial) System.err.println("New data size: " + redisson.getList("fop").size());
     }
 
     private static boolean isChanged(UO record) {
         return !redisson.getMap("uo/" + record.getId()).containsKey(record.hashCode());
-    }
-
-    private static boolean isChanged(FOP record) {
-        return !Objects.equals(redisson.getBucket("fop/" + record.getId() + "/hash").get(), record.hashCode());
     }
 }

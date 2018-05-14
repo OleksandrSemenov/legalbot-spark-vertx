@@ -2,7 +2,6 @@ package com.spark.models;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.Row;
-import reactor.core.support.UUIDUtils;
 
 import java.util.Objects;
 
@@ -10,18 +9,15 @@ import java.util.Objects;
  * @author Taras Zubrei
  */
 public class FOP {
-    private String id;
     private String name;
     private String address;
     private String kved;
     private String stan;
 
     public FOP() {
-        this.id = UUIDUtils.create().toString();
     }
 
     public FOP(String name, String address, String kved, String stan) {
-        this();
         if (StringUtils.isNotBlank(name)) this.name = name.trim();
         if (StringUtils.isNotBlank(address)) this.address = address.trim();
         if (StringUtils.isNotBlank(kved)) this.kved = kved.trim();
@@ -35,14 +31,6 @@ public class FOP {
                 row.getString(2),
                 row.getString(3)
         );
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -82,8 +70,7 @@ public class FOP {
         if (this == o) return true;
         if (!(o instanceof FOP)) return false;
         FOP fop = (FOP) o;
-        return Objects.equals(id, fop.id) &&
-                Objects.equals(name, fop.name) &&
+        return Objects.equals(name, fop.name) &&
                 Objects.equals(address, fop.address) &&
                 Objects.equals(kved, fop.kved) &&
                 Objects.equals(stan, fop.stan);
@@ -91,14 +78,13 @@ public class FOP {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, address, kved, stan);
+        return Objects.hash(name, address, kved, stan);
     }
 
     @Override
     public String toString() {
         return "FOP{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", address='" + address + '\'' +
                 ", kved='" + kved + '\'' +
                 ", stan='" + stan + '\'' +
