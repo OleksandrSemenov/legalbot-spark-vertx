@@ -30,6 +30,10 @@ public class RestVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
 
+        router.post("/parse/ufop").handler(ctx -> vertx.executeBlocking(future -> {
+            sparkService.parseLastUFOPData(Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false));
+            future.complete();
+        }, res -> ctx.response().setStatusCode(200).end()));
         router.post("/parse/uo").handler(ctx -> vertx.executeBlocking(future -> {
             sparkService.parseUOXml(ctx.getBodyAsString(), Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false));
             future.complete();
