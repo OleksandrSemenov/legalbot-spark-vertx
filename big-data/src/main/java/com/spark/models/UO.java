@@ -1,5 +1,6 @@
 package com.spark.models;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.Row;
 
 import java.io.Serializable;
@@ -27,24 +28,24 @@ public class UO implements Serializable{
 
     public UO(Long id, String name, String shortName, String address, String boss, String kved, String stan, List<String> founders) {
         this.id = id;
-        this.name = name;
-        this.shortName = shortName;
-        this.address = address;
-        this.boss = boss;
-        this.kved = kved;
-        this.stan = stan;
+        if (StringUtils.isNotBlank(name)) this.name = name.trim();
+        if (StringUtils.isNotBlank(shortName)) this.shortName = shortName.trim();
+        if (StringUtils.isNotBlank(address)) this.address = address.trim();
+        if (StringUtils.isNotBlank(boss)) this.boss = boss.trim();
+        if (StringUtils.isNotBlank(kved)) this.kved = kved.trim();
+        if (StringUtils.isNotBlank(stan)) this.stan = stan.trim();
         this.founders = founders;
     }
 
     public static UO fromXml(Row row) {
         return new UO(
                 row.getLong(0),
-                row.getString(1).trim(),
-                row.getString(2).trim(),
-                row.getString(3).trim(),
-                row.getString(4).trim(),
-                row.getString(5).trim(),
-                row.getString(6).trim(),
+                row.getString(1),
+                row.getString(2),
+                row.getString(3),
+                row.getString(4),
+                row.getString(5),
+                row.getString(6),
                 row.get(7) != null ? row.<Row>getAs(7).<String>getList(0).stream().map(String::trim).collect(toList()) : new ArrayList<>()
         );
     }
