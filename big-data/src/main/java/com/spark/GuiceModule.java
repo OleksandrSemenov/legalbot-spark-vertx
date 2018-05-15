@@ -15,8 +15,8 @@ import com.spark.service.impl.SparkServiceImpl;
 import com.spark.service.impl.UserServiceImpl;
 import com.spark.util.CustomMessageCodec;
 import com.spark.verticles.RestVerticle;
-import io.vertx.rxjava.core.Vertx;
-import io.vertx.rxjava.core.eventbus.EventBus;
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
@@ -34,11 +34,10 @@ public class GuiceModule extends AbstractModule {
             final JavaSparkContext sc = new JavaSparkContext(sparkConf);
             SchedulerFactory schedulerFactory = new StdSchedulerFactory();
             Scheduler scheduler = schedulerFactory.getScheduler();
-            Vertx rxVertx = Vertx.vertx();
+            Vertx vertx = Vertx.vertx();
 
-            bind(Vertx.class).toInstance(rxVertx);
-            bind(io.vertx.core.Vertx.class).toInstance((io.vertx.core.Vertx) rxVertx.getDelegate());
-            bind(EventBus.class).toInstance(rxVertx.eventBus());
+            bind(Vertx.class).toInstance(vertx);
+            bind(EventBus.class).toInstance(vertx.eventBus());
             bind(SchedulerFactory.class).toInstance(schedulerFactory);
             bind(Scheduler.class).toInstance(scheduler);
             bind(SparkConf.class).toInstance(sparkConf);

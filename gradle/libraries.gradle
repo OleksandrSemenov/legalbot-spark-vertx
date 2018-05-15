@@ -1,5 +1,5 @@
 ext {
-    vertxVersion = '3.0.0'
+    vertxVersion = '3.4.2'
 
     libs = [
             rxjava          : [

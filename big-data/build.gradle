@@ -30,8 +30,6 @@ dependencies {
     compile libs.commons.lang
     compile libs.vertx.core
     compile libs.vertx.web
-    compile libs.vertx.rxjava
-    compile libs.jersey_rx_client
     compile libs.guava
     testCompile libs.test.junit
 }

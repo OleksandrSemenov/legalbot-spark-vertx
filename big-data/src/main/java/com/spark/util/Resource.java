@@ -14,4 +14,8 @@ public enum Resource {
     public String getName() {
         return name;
     }
+
+    public static Resource fromName(String name) {
+        return Resource.valueOf(name.toUpperCase());
+    }
 }

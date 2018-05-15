@@ -3,7 +3,7 @@ package com.spark.util;
 import com.spark.models.FOP;
 import com.spark.models.UO;
 import com.spark.models.UOUpdate;
-import io.vertx.rxjava.core.eventbus.EventBus;
+import io.vertx.core.eventbus.EventBus;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;

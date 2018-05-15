@@ -7,6 +7,7 @@ import com.spark.util.Resource;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +24,11 @@ public class UserServiceImpl implements UserService {
     @Inject
     public UserServiceImpl(RedissonClient redisson) {
         this.redisson = redisson;
+    }
+
+    @Override
+    public List<String> findAll() {
+        return new ArrayList<>(redisson.<String>getSet(USERS));
     }
 
     @Override

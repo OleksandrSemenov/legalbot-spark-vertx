@@ -10,6 +10,8 @@ import java.util.UUID;
  * @author Taras Zubrei
  */
 public interface UserService {
+    List<String> findAll();
+
     User find(UUID id);
 
     void subscribe(UUID userId, Resource to, String id);

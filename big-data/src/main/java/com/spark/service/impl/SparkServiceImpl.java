@@ -5,7 +5,7 @@ import com.spark.service.SparkService;
 import com.spark.util.FileUtil;
 import com.spark.util.HttpUtil;
 import com.spark.util.SparkUtil;
-import io.vertx.rxjava.core.eventbus.EventBus;
+import io.vertx.core.eventbus.EventBus;
 import org.apache.spark.sql.SparkSession;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
