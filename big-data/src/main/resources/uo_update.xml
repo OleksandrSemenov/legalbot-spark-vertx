@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <DATA FORMAT_VERSION="1.0">
     <RECORD>
+        <NAME>Нова назва</NAME>
+        <SHORT_NAME />
+        <EDRPOU>0000000000</EDRPOU>
+        <ADDRESS />
+        <BOSS />
+        <KVED />
+        <STAN>в стані припинення</STAN>
+    </RECORD>
+    <RECORD>
         <NAME>ПРИВАТНЕ ПІДПРИЄМСТВО ПРИВАТНЕ МАЛЕ ПІДПРИЄМСТВО "ЛОРА"</NAME>
         <SHORT_NAME />
         <EDRPOU>00000009</EDRPOU>
@@ -8,6 +17,15 @@
         <BOSS />
         <KVED />
         <STAN>в стані припинення</STAN>
+    </RECORD>
+    <RECORD>
+        <NAME>Нова назва</NAME>
+        <SHORT_NAME />
+        <EDRPOU>00000009</EDRPOU>
+        <ADDRESS>Нова адреса</ADDRESS>
+        <BOSS>Новий власник</BOSS>
+        <KVED>94.99 Діяльність інших громадських організацій, н. в. і. у.</KVED>
+        <STAN>зареєстровано</STAN>
     </RECORD>
     <RECORD>
         <NAME>СЕЛЯНСЬКЕ (ФЕРМЕРСЬКЕ) ГОСПОДАРСТВО "ДЯКІВ"</NAME>

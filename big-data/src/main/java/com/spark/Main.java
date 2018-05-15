@@ -2,6 +2,7 @@ package com.spark;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.spark.handler.UOUpdateHandler;
 import com.spark.job.UFOPJob;
 import com.spark.models.Event;
@@ -30,6 +31,12 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         final Injector injector = Guice.createInjector(new GuiceModule());
+        configureQuartz(injector);
+        configureVertx(injector);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(injector)));
+    }
+
+    public static void configureQuartz(Injector injector) throws Exception {
         final SparkService sparkService = injector.getInstance(SparkService.class);
         final Scheduler scheduler = injector.getInstance(Scheduler.class);
 
@@ -44,24 +51,32 @@ public class Main {
                 .withSchedule(CalendarIntervalScheduleBuilder.calendarIntervalSchedule().withIntervalInDays(1))
                 .build();
 
+        scheduler.scheduleJob(job, trigger);
+    }
+
+    public static void configureVertx(Injector injector) {
         Vertx vertx = injector.getInstance(Vertx.class);
         vertx.deployVerticle(injector.getInstance(RestVerticle.class));
         vertx.eventBus().<UOUpdate>consumer("parse/uo").handler(injector.getInstance(UOUpdateHandler.class));
         Reflections ref = new Reflections(Event.class.getPackage().getName());
         final CustomMessageCodec messageCodec = injector.getInstance(CustomMessageCodec.class);
         ref.getTypesAnnotatedWith(Event.class).forEach(clazz -> vertx.eventBus().registerDefaultCodec(clazz, messageCodec));
-        scheduler.scheduleJob(job, trigger);
+    }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+    public static void shutdown(Injector injector) {
+        if (injector.getBindings().containsKey(Key.get(Vertx.class)))
             injector.getInstance(Vertx.class).close();
+        if (injector.getBindings().containsKey(Key.get(SparkSession.class)))
             injector.getInstance(SparkSession.class).close();
+        if (injector.getBindings().containsKey(Key.get(JavaSparkContext.class)))
             injector.getInstance(JavaSparkContext.class).close();
+        if (injector.getBindings().containsKey(Key.get(RedissonClient.class)))
             injector.getInstance(RedissonClient.class).shutdown();
-            try {
+        try {
+            if (injector.getBindings().containsKey(Key.get(Scheduler.class)))
                 injector.getInstance(Scheduler.class).shutdown();
-            } catch (SchedulerException e) {
-                throw new IllegalStateException("Failed to stop quartz scheduler", e);
-            }
-        }));
+        } catch (SchedulerException e) {
+            throw new IllegalStateException("Failed to stop quartz scheduler", e);
+        }
     }
 }

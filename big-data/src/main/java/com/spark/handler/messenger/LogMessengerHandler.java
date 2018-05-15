@@ -1,6 +1,7 @@
 package com.spark.handler.messenger;
 
 import com.spark.models.UOUpdate;
+import com.spark.models.User;
 import com.spark.util.MessengerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,7 @@ public class LogMessengerHandler implements MessengerHandler {
     }
 
     @Override
-    public void onUOUpdate(UOUpdate update) {
-        logger.info("Logging received UO update: {}", update);
+    public void onUOUpdate(User user, UOUpdate update) {
+        logger.info("User {} received UO update: {}", user.getId(), update);
     }
 }

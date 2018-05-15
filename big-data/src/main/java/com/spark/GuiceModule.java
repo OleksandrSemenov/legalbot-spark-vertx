@@ -10,7 +10,9 @@ import com.spark.handler.UOUpdateHandler;
 import com.spark.handler.messenger.LogMessengerHandler;
 import com.spark.handler.messenger.MessengerHandler;
 import com.spark.service.SparkService;
+import com.spark.service.UserService;
 import com.spark.service.impl.SparkServiceImpl;
+import com.spark.service.impl.UserServiceImpl;
 import com.spark.util.CustomMessageCodec;
 import com.spark.verticles.RestVerticle;
 import io.vertx.rxjava.core.Vertx;
@@ -44,6 +46,7 @@ public class GuiceModule extends AbstractModule {
             bind(RedissonClient.class).toInstance(Redisson.create());
             bind(SparkSession.class).toInstance(new SparkSession(sc.sc()));
             bind(SparkService.class).to(SparkServiceImpl.class);
+            bind(UserService.class).to(UserServiceImpl.class);
             bind(RestVerticle.class);
             bind(UOUpdateHandler.class);
             bind(CustomMessageCodec.class);

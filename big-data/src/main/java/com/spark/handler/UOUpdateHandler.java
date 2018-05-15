@@ -3,15 +3,16 @@ package com.spark.handler;
 import com.google.inject.Inject;
 import com.spark.handler.messenger.MessengerHandler;
 import com.spark.models.UOUpdate;
+import com.spark.service.UserService;
 import com.spark.util.MessengerType;
+import com.spark.util.Resource;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
-import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,18 +22,24 @@ import java.util.stream.Collectors;
 public class UOUpdateHandler implements Handler<Message<UOUpdate>> {
     private static final Logger logger = LoggerFactory.getLogger(UOUpdateHandler.class);
     private final Map<MessengerType, MessengerHandler> handlers;
-    private final RedissonClient redisson;
+    private final UserService userService;
 
     @Inject
-    public UOUpdateHandler(Set<MessengerHandler> handlers, RedissonClient redisson) {
+    public UOUpdateHandler(Set<MessengerHandler> handlers, UserService userService) {
         this.handlers = handlers.stream().collect(Collectors.toMap(MessengerHandler::type, Function.identity()));
-        this.redisson = redisson;
+        this.userService = userService;
     }
 
     @Override
     public void handle(Message<UOUpdate> event) {
         final UOUpdate update = event.body();
-        handlers.values().forEach(handler -> handler.onUOUpdate(update));
+        userService.findSubscribedTo(Resource.UO, update.getId().toString()).forEach(user -> user.getMessengerIds()
+                .entrySet()
+                .stream()
+                .filter(entry -> handlers.containsKey(entry.getKey()))
+                .map(entry -> handlers.get(entry.getKey()))
+                .forEach(handler -> handler.onUOUpdate(user, update))
+        );
         logger.info("Handled UO update: {}", update);
     }
 }
