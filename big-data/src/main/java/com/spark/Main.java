@@ -9,6 +9,7 @@ import com.spark.models.Event;
 import com.spark.models.UOUpdate;
 import com.spark.service.SparkService;
 import com.spark.util.CustomMessageCodec;
+import com.spark.util.EventBusChannels;
 import com.spark.verticles.RestVerticle;
 import io.vertx.core.Vertx;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -57,7 +58,7 @@ public class Main {
     public static void configureVertx(Injector injector) {
         Vertx vertx = injector.getInstance(Vertx.class);
         vertx.deployVerticle(injector.getInstance(RestVerticle.class));
-        vertx.eventBus().<UOUpdate>consumer("parse/uo").handler(injector.getInstance(UOUpdateHandler.class));
+        vertx.eventBus().<UOUpdate>consumer(EventBusChannels.UO).handler(injector.getInstance(UOUpdateHandler.class));
         Reflections ref = new Reflections(Event.class.getPackage().getName());
         final CustomMessageCodec messageCodec = injector.getInstance(CustomMessageCodec.class);
         ref.getTypesAnnotatedWith(Event.class).forEach(clazz -> vertx.eventBus().registerDefaultCodec(clazz, messageCodec));

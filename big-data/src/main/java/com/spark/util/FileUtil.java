@@ -21,8 +21,8 @@ public class FileUtil {
 
     public static String downloadFile(String url, String path) {
         try {
-            final File direcotory = new File(path);
-            if (!direcotory.exists()) direcotory.mkdirs();
+            final File directory = new File(path);
+            if (!directory.exists()) directory.mkdirs();
             final String filePath = Paths.get(path, FilenameUtils.getName(new URL(url).getPath())).toString();
             FileUtils.copyURLToFile(new URL(url), new File(filePath));
             return filePath;

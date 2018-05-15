@@ -13,6 +13,8 @@ import org.redisson.api.RedissonClient;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.spark.util.RedisKeys.UO_TEMPLATE;
+
 /**
  * @author Taras Zubrei
  */
@@ -34,7 +36,7 @@ public class SparkUtil {
                 .map(UO::fromXml)
                 .persist(StorageLevel.MEMORY_AND_DISK());
         if (initial) {
-            ds.foreach(t -> redisson.getMap("uo/" + t.getId()).fastPut(t.hashCode(), t));
+            ds.foreach(t -> redisson.getMap(String.format(UO_TEMPLATE, t.getId())).fastPut(t.hashCode(), t));
         } else {
             final List<Long> updatedIds = ds
                     .filter(SparkUtil::isChanged)
@@ -44,12 +46,12 @@ public class SparkUtil {
                 ds.filter(t -> updatedIds.contains(t.getId()))
                         .groupBy(UO::getId)
                         .foreach(tuple -> {
-                            final RMap<Integer, UO> map = redisson.getMap("uo/" + tuple._1);
+                            final RMap<Integer, UO> map = redisson.getMap(String.format(UO_TEMPLATE, tuple._1));
                             final ArrayList<UO> previousData = new ArrayList<>(map.values());
                             map.delete();
                             tuple._2.forEach(t -> map.fastPut(t.hashCode(), t));
                             if (!previousData.isEmpty())
-                                eventBus.publish("parse/uo", new UOUpdate(tuple._1, previousData, new ArrayList<>(map.values())));
+                                eventBus.publish(EventBusChannels.UO, new UOUpdate(tuple._1, previousData, new ArrayList<>(map.values())));
                         });
             }
         }
@@ -59,7 +61,7 @@ public class SparkUtil {
     public static void parseFOP(SparkSession session, RedissonClient redissonClient, EventBus bus, String path, boolean initial) {
         redisson = redissonClient;
         eventBus = bus;
-        redisson.getList("fop").delete();
+        redisson.getList(RedisKeys.FOP).delete();
         session.read()
                 .format("com.databricks.spark.xml")
                 .option("rootTag", "DATA")
@@ -68,11 +70,11 @@ public class SparkUtil {
                 .load(path)
                 .select("FIO", "ADDRESS", "KVED", "STAN")
                 .toJavaRDD()
-                .foreach(t -> redisson.getList("fop").add(FOP.fromXml(t)));
-        if (!initial) eventBus.publish("parse/fop", redisson.getList("fop").size());
+                .foreach(t -> redisson.getList(RedisKeys.FOP).add(FOP.fromXml(t)));
+        if (!initial) eventBus.publish(EventBusChannels.FOP, redisson.getList(RedisKeys.FOP).size());
     }
 
     private static boolean isChanged(UO record) {
-        return !redisson.getMap("uo/" + record.getId()).containsKey(record.hashCode());
+        return !redisson.getMap(String.format(UO_TEMPLATE, record.getId())).containsKey(record.hashCode());
     }
 }

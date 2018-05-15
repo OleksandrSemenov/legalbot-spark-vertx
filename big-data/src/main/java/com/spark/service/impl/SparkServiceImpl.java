@@ -17,12 +17,16 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static com.spark.util.RedisKeys.UFOP_LAST_UPDATE_DATE;
+
 /**
  * @author Taras Zubrei
  */
 public class SparkServiceImpl implements SparkService, Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SparkServiceImpl.class);
     private static final String UFOP_PATH = "/tmp/legalbot/archives/ufop";
+    private static final String UO_FILE_NAME = "15.1-EX_XML_EDR_UO.xml";
+    private static final String FOP_FILE_NAME = "15.2-EX_XML_EDR_FOP.xml";
 
     private final SparkSession session;
     private final RedissonClient redisson;
@@ -38,14 +42,14 @@ public class SparkServiceImpl implements SparkService, Serializable {
     @Override
     public void parseLastUFOPData(boolean initial) {
         final HttpUtil.ArchiveUrl archiveUrl = HttpUtil.getUFOPDownloadUrl();
-        final RBucket<String> lastUpdatedBucket = redisson.getBucket("ufop/date");
+        final RBucket<String> lastUpdatedBucket = redisson.getBucket(UFOP_LAST_UPDATE_DATE);
         final LocalDate lastUpdated = Optional.ofNullable(lastUpdatedBucket.get()).map(LocalDate::parse).orElse(LocalDate.ofEpochDay(0));
         if (archiveUrl.getDate().isAfter(lastUpdated)) {
             logger.info("Downloading new data for date: {}", archiveUrl.getDate());
             final String zipFile = FileUtil.downloadFile(archiveUrl.getUrl(), UFOP_PATH);
             final String extractFolder = FileUtil.unzip(zipFile);
-            parseUOXml(Paths.get(extractFolder, "15.1-EX_XML_EDR_UO.xml").toString(), initial);
-            parseFOPXml(Paths.get(extractFolder, "15.2-EX_XML_EDR_FOP.xml").toString(), initial);
+            parseUOXml(Paths.get(extractFolder, UO_FILE_NAME).toString(), initial);
+            parseFOPXml(Paths.get(extractFolder, FOP_FILE_NAME).toString(), initial);
             lastUpdatedBucket.set(archiveUrl.getDate().toString());
             logger.info("Successfully parsed new UFOP data for date: {}", archiveUrl.getDate());
         } else {
