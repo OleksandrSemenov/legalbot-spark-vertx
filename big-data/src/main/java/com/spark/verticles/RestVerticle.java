@@ -1,5 +1,6 @@
 package com.spark.verticles;
 
+import com.google.inject.Inject;
 import com.spark.service.SparkService;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerOptions;
@@ -21,6 +22,7 @@ public class RestVerticle extends AbstractVerticle {
     private final static Logger logger = LoggerFactory.getLogger(RestVerticle.class);
     private final SparkService sparkService;
 
+    @Inject
     public RestVerticle(SparkService sparkService) {
         this.sparkService = sparkService;
     }

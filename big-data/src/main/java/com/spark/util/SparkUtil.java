@@ -2,6 +2,8 @@ package com.spark.util;
 
 import com.spark.models.FOP;
 import com.spark.models.UO;
+import com.spark.models.UOUpdate;
+import io.vertx.rxjava.core.eventbus.EventBus;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;
@@ -16,9 +18,11 @@ import java.util.List;
  */
 public class SparkUtil {
     private static RedissonClient redisson;
+    private static EventBus eventBus;
 
-    public static void parseUO(SparkSession session, RedissonClient redissonClient, String path, boolean initial) {
+    public static void parseUO(SparkSession session, RedissonClient redissonClient, EventBus bus, String path, boolean initial) {
         redisson = redissonClient;
+        eventBus = bus;
         JavaRDD<UO> ds = session.read()
                 .format("com.databricks.spark.xml")
                 .option("rootTag", "DATA")
@@ -36,22 +40,25 @@ public class SparkUtil {
                     .filter(SparkUtil::isChanged)
                     .map(UO::getId)
                     .collect();
-            ds.filter(t -> updatedIds.contains(t.getId()))
-                    .groupBy(UO::getId)
-                    .foreach(tuple -> {
-                        final RMap<Integer, UO> map = redisson.getMap("uo/" + tuple._1);
-                        final ArrayList<UO> previousData = new ArrayList<>(map.values());
-                        map.delete();
-                        tuple._2.forEach(t -> map.fastPut(t.hashCode(), t));
-                        if (!previousData.isEmpty())
-                            System.err.println("Id: " + tuple._1 + ". New data: " + map.values() + ". Old data: " + previousData);
-                    });
+            if (!updatedIds.isEmpty()) {
+                ds.filter(t -> updatedIds.contains(t.getId()))
+                        .groupBy(UO::getId)
+                        .foreach(tuple -> {
+                            final RMap<Integer, UO> map = redisson.getMap("uo/" + tuple._1);
+                            final ArrayList<UO> previousData = new ArrayList<>(map.values());
+                            map.delete();
+                            tuple._2.forEach(t -> map.fastPut(t.hashCode(), t));
+                            if (!previousData.isEmpty())
+                                eventBus.publish("parse/uo", new UOUpdate(tuple._1, previousData, new ArrayList<>(map.values())));
+                        });
+            }
         }
         ds.unpersist();
     }
 
-    public static void parseFOP(SparkSession session, RedissonClient redissonClient, String path, boolean initial) {
+    public static void parseFOP(SparkSession session, RedissonClient redissonClient, EventBus bus, String path, boolean initial) {
         redisson = redissonClient;
+        eventBus = bus;
         redisson.getList("fop").delete();
         session.read()
                 .format("com.databricks.spark.xml")
@@ -62,7 +69,7 @@ public class SparkUtil {
                 .select("FIO", "ADDRESS", "KVED", "STAN")
                 .toJavaRDD()
                 .foreach(t -> redisson.getList("fop").add(FOP.fromXml(t)));
-        if (!initial) System.err.println("New data size: " + redisson.getList("fop").size());
+        if (!initial) eventBus.publish("parse/fop", redisson.getList("fop").size());
     }
 
     private static boolean isChanged(UO record) {

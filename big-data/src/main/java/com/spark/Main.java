@@ -2,14 +2,19 @@ package com.spark;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.spark.handler.UOUpdateHandler;
 import com.spark.job.UFOPJob;
+import com.spark.models.Event;
+import com.spark.models.UOUpdate;
 import com.spark.service.SparkService;
+import com.spark.util.CustomMessageCodec;
 import com.spark.verticles.RestVerticle;
-import io.vertx.rxjava.core.Vertx;
+import io.vertx.core.Vertx;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
 import org.quartz.*;
 import org.redisson.api.RedissonClient;
+import org.reflections.Reflections;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,13 +44,16 @@ public class Main {
                 .withSchedule(CalendarIntervalScheduleBuilder.calendarIntervalSchedule().withIntervalInDays(1))
                 .build();
 
-        Vertx rxVertx = Vertx.vertx();
-        io.vertx.core.Vertx vertx = (io.vertx.core.Vertx) rxVertx.getDelegate();
-        vertx.deployVerticle(new RestVerticle(sparkService));
+        Vertx vertx = injector.getInstance(Vertx.class);
+        vertx.deployVerticle(injector.getInstance(RestVerticle.class));
+        vertx.eventBus().<UOUpdate>consumer("parse/uo").handler(injector.getInstance(UOUpdateHandler.class));
+        Reflections ref = new Reflections(Event.class.getPackage().getName());
+        final CustomMessageCodec messageCodec = injector.getInstance(CustomMessageCodec.class);
+        ref.getTypesAnnotatedWith(Event.class).forEach(clazz -> vertx.eventBus().registerDefaultCodec(clazz, messageCodec));
         scheduler.scheduleJob(job, trigger);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            vertx.close();
+            injector.getInstance(Vertx.class).close();
             injector.getInstance(SparkSession.class).close();
             injector.getInstance(JavaSparkContext.class).close();
             injector.getInstance(RedissonClient.class).shutdown();

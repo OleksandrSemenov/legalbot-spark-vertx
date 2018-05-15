@@ -25,6 +25,7 @@ dependencies {
     compile 'net.lingala.zip4j:zip4j:1.3.2'
     compile 'org.jsoup:jsoup:1.11.3'
     compile 'org.quartz-scheduler:quartz:2.3.0'
+    compile 'org.reflections:reflections:0.9.11'
 
     compile libs.commons.lang
     compile libs.vertx.core

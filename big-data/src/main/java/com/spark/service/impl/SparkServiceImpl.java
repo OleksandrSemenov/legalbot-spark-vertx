@@ -5,6 +5,7 @@ import com.spark.service.SparkService;
 import com.spark.util.FileUtil;
 import com.spark.util.HttpUtil;
 import com.spark.util.SparkUtil;
+import io.vertx.rxjava.core.eventbus.EventBus;
 import org.apache.spark.sql.SparkSession;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
@@ -25,11 +26,13 @@ public class SparkServiceImpl implements SparkService, Serializable {
 
     private final SparkSession session;
     private final RedissonClient redisson;
+    private final EventBus eventBus;
 
     @Inject
-    public SparkServiceImpl(SparkSession session, RedissonClient redisson) {
+    public SparkServiceImpl(SparkSession session, RedissonClient redisson, EventBus eventBus) {
         this.session = session;
         this.redisson = redisson;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -62,13 +65,13 @@ public class SparkServiceImpl implements SparkService, Serializable {
 
     @Override
     public void parseFOPXml(String path, boolean initial) {
-        SparkUtil.parseFOP(session, redisson, path, initial);
+        SparkUtil.parseFOP(session, redisson, eventBus, path, initial);
         logger.info("Successfully parsed FOP data");
     }
 
     @Override
     public void parseUOXml(String path, boolean initial) {
-        SparkUtil.parseUO(session, redisson, path, initial);
+        SparkUtil.parseUO(session, redisson, eventBus, path, initial);
         logger.info("Successfully parsed UO data");
     }
 }
