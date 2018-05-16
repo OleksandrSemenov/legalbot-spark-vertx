@@ -6,6 +6,7 @@ import com.spark.models.UO;
 import com.spark.service.UFOPService;
 import com.spark.util.RedisKeys;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.protocol.ScoredEntry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,14 +33,17 @@ public class UFOPServiceImpl implements UFOPService {
     }
 
     @Override
-    public Map<String, List<UO>> findUO(Integer page, Integer size) {
-        return redisson.<String>getList(RedisKeys.UO).subList(page != null ? page * size : 0, (Optional.ofNullable(page).orElse(0) + 1) * size).stream()
+    public Map<String, List<UO>> findUO(int page, int size) {
+        return redisson.<Long>getScoredSortedSet(RedisKeys.UO).entryRange(page * size, (page + 1 ) * size)
+                .stream()
+                .map(ScoredEntry::getValue)
+                .map(String::valueOf)
                 .map(this::findUO)
                 .collect(toMap(t -> String.valueOf(t.get(0).getId()), Function.identity()));
     }
 
     @Override
-    public List<FOP> findFOP(Integer page, Integer size) {
-        return redisson.<FOP>getList(RedisKeys.FOP).subList(page != null ? page * size : 0, (Optional.ofNullable(page).orElse(0) + 1) * size);
+    public List<FOP> findFOP(int page, int size) {
+        return redisson.<FOP>getList(RedisKeys.FOP).subList(page * size, (page + 1) * size);
     }
 }

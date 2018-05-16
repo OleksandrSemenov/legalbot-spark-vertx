@@ -117,16 +117,12 @@ public class RestVerticle extends AbstractVerticle {
                 ctx.response().end(Json.encodePrettily(userService.delete(UUID.fromString(id))));
         });
 
-        router.post("/data/uo").handler(ctx -> {
+        router.get("/data/uo").handler(ctx -> {
             final Integer size = Optional.ofNullable(ctx.request().getParam("size")).map(Integer::valueOf).orElse(10);
-            final String page = ctx.request().getParam("page");
-            if (StringUtils.isBlank(page) || page.matches("\\d+"))
-                ctx.response().setStatusCode(400).end();
-            else {
-                ctx.response().end(Json.encodePrettily(ufopService.findUO(Integer.valueOf(page), size)));
-            }
+            final Integer page = Optional.ofNullable(ctx.request().getParam("page")).map(Integer::valueOf).orElse(0);
+            ctx.response().end(Json.encodePrettily(ufopService.findUO(page, size)));
         });
-        router.post("/data/uo/:id").handler(ctx -> {
+        router.get("/data/uo/:id").handler(ctx -> {
             final String id = ctx.request().getParam("id");
             if (StringUtils.isBlank(id) || id.matches("\\d+"))
                 ctx.response().setStatusCode(400).end();
@@ -134,14 +130,10 @@ public class RestVerticle extends AbstractVerticle {
                 ctx.response().end(Json.encodePrettily(ufopService.findUO(id)));
             }
         });
-        router.post("/data/fop").handler(ctx -> {
+        router.get("/data/fop").handler(ctx -> {
             final Integer size = Optional.ofNullable(ctx.request().getParam("size")).map(Integer::valueOf).orElse(10);
-            final String page = ctx.request().getParam("page");
-            if (StringUtils.isBlank(page) || page.matches("\\d+"))
-                ctx.response().setStatusCode(400).end();
-            else {
-                ctx.response().end(Json.encodePrettily(ufopService.findFOP(Integer.valueOf(page), size)));
-            }
+            final Integer page = Optional.ofNullable(ctx.request().getParam("page")).map(Integer::valueOf).orElse(0);
+            ctx.response().end(Json.encodePrettily(ufopService.findFOP(page, size)));
         });
 
         router.route("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("<h1>Legal bot main page</h1>"));

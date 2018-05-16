@@ -7,7 +7,6 @@ import io.vertx.core.eventbus.EventBus;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;
-import org.redisson.api.RList;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 
@@ -38,8 +37,7 @@ public class SparkUtil {
                 .persist(StorageLevel.MEMORY_AND_DISK());
         if (initial) {
             ds.foreach(t -> {
-                final RList<String> ids = redisson.getList(RedisKeys.UO);
-                if (!ids.contains(String.valueOf(t.getId()))) ids.add(String.valueOf(t.getId()));
+                redisson.getScoredSortedSet(RedisKeys.UO).add(t.getId(), t.getId());
                 redisson.getMap(String.format(UO_TEMPLATE, t.getId())).fastPut(t.hashCode(), t);
             });
         } else {
@@ -54,8 +52,7 @@ public class SparkUtil {
                             final RMap<Integer, UO> map = redisson.getMap(String.format(UO_TEMPLATE, tuple._1));
                             final ArrayList<UO> previousData = new ArrayList<>(map.values());
                             map.delete();
-                            final RList<String> ids = redisson.getList(RedisKeys.UO);
-                            if (!ids.contains(String.valueOf(tuple._1))) ids.add(String.valueOf(tuple._1));
+                            redisson.getScoredSortedSet(RedisKeys.UO).add(tuple._1, tuple._1);
                             tuple._2.forEach(t -> map.fastPut(t.hashCode(), t));
                             if (!previousData.isEmpty())
                                 eventBus.publish(EventBusChannels.UO, new UOUpdate(tuple._1, previousData, new ArrayList<>(map.values())));

@@ -12,7 +12,7 @@ import java.util.Map;
 public interface UFOPService {
     List<UO> findUO(String id);
 
-    Map<String, List<UO>> findUO(Integer page, Integer size);
+    Map<String, List<UO>> findUO(int page, int size);
 
-    List<FOP> findFOP(Integer page, Integer size);
+    List<FOP> findFOP(int page, int size);
 }
