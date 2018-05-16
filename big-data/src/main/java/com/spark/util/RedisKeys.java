@@ -9,5 +9,6 @@ public interface RedisKeys {
     String USER_SUBSCRIPTION_TEMPlATE = "user/%s/subscriptions/%s";
     String USERS = "users";
     String UO_TEMPLATE = "uo/%s";
+    String UO = "uo";
     String FOP = "fop";
 }

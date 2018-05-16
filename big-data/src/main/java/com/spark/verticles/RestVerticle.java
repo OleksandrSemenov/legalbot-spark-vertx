@@ -3,6 +3,7 @@ package com.spark.verticles;
 import com.google.inject.Inject;
 import com.spark.models.User;
 import com.spark.service.SparkService;
+import com.spark.service.UFOPService;
 import com.spark.service.UserService;
 import com.spark.util.Resource;
 import io.vertx.core.AbstractVerticle;
@@ -28,11 +29,13 @@ public class RestVerticle extends AbstractVerticle {
     private final static Logger logger = LoggerFactory.getLogger(RestVerticle.class);
     private final SparkService sparkService;
     private final UserService userService;
+    private final UFOPService ufopService;
 
     @Inject
-    public RestVerticle(SparkService sparkService, UserService userService) {
+    public RestVerticle(SparkService sparkService, UserService userService, UFOPService ufopService) {
         this.sparkService = sparkService;
         this.userService = userService;
+        this.ufopService = ufopService;
     }
 
     @Override
@@ -40,9 +43,18 @@ public class RestVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
 
-        router.post("/parse/ufop").blockingHandler(ctx -> sparkService.parseLastUFOPData(Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false)));
-        router.post("/parse/uo").blockingHandler(ctx -> sparkService.parseUOXml(ctx.getBodyAsString(), Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false)));
-        router.post("/parse/fop").blockingHandler(ctx -> sparkService.parseFOPXml(ctx.getBodyAsString(), Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false)));
+        router.post("/parse/ufop").blockingHandler(ctx -> {
+            sparkService.parseLastUFOPData(Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false));
+            ctx.response().end("OK");
+        });
+        router.post("/parse/uo").blockingHandler(ctx -> {
+            sparkService.parseUOXml(ctx.getBodyAsString(), Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false));
+            ctx.response().end("OK");
+        });
+        router.post("/parse/fop").blockingHandler(ctx -> {
+            sparkService.parseFOPXml(ctx.getBodyAsString(), Optional.ofNullable(ctx.request().getParam("initial")).map(Boolean::valueOf).orElse(false));
+            ctx.response().end("OK");
+        });
 
         router.get("/user").handler(ctx -> ctx.response().end(Json.encodePrettily(userService.findAll())));
         router.get("/user/:id").handler(ctx -> {
@@ -52,7 +64,6 @@ public class RestVerticle extends AbstractVerticle {
             else
                 ctx.response().end(Json.encodePrettily(userService.find(UUID.fromString(id))));
         });
-
         router.post("/user").handler(ctx -> ctx.response().setStatusCode(201).end(Json.encodePrettily(userService.save(Json.decodeValue(ctx.getBodyAsString(), User.class)))));
         router.post("/user/:id/subscriptions/:resource/:resourceId").handler(ctx -> {
             final String id = ctx.request().getParam("id");
@@ -104,6 +115,33 @@ public class RestVerticle extends AbstractVerticle {
                 ctx.response().setStatusCode(400).end();
             else
                 ctx.response().end(Json.encodePrettily(userService.delete(UUID.fromString(id))));
+        });
+
+        router.post("/data/uo").handler(ctx -> {
+            final Integer size = Optional.ofNullable(ctx.request().getParam("size")).map(Integer::valueOf).orElse(10);
+            final String page = ctx.request().getParam("page");
+            if (StringUtils.isBlank(page) || page.matches("\\d+"))
+                ctx.response().setStatusCode(400).end();
+            else {
+                ctx.response().end(Json.encodePrettily(ufopService.findUO(Integer.valueOf(page), size)));
+            }
+        });
+        router.post("/data/uo/:id").handler(ctx -> {
+            final String id = ctx.request().getParam("id");
+            if (StringUtils.isBlank(id) || id.matches("\\d+"))
+                ctx.response().setStatusCode(400).end();
+            else {
+                ctx.response().end(Json.encodePrettily(ufopService.findUO(id)));
+            }
+        });
+        router.post("/data/fop").handler(ctx -> {
+            final Integer size = Optional.ofNullable(ctx.request().getParam("size")).map(Integer::valueOf).orElse(10);
+            final String page = ctx.request().getParam("page");
+            if (StringUtils.isBlank(page) || page.matches("\\d+"))
+                ctx.response().setStatusCode(400).end();
+            else {
+                ctx.response().end(Json.encodePrettily(ufopService.findFOP(Integer.valueOf(page), size)));
+            }
         });
 
         router.route("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("<h1>Legal bot main page</h1>"));

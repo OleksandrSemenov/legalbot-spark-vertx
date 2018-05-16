@@ -5,17 +5,21 @@ package com.spark;
  */
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
 import com.google.inject.multibindings.Multibinder;
 import com.spark.handler.UOUpdateHandler;
 import com.spark.handler.messenger.LogMessengerHandler;
 import com.spark.handler.messenger.MessengerHandler;
 import com.spark.service.SparkService;
+import com.spark.service.UFOPService;
 import com.spark.service.UserService;
 import com.spark.service.impl.SparkServiceImpl;
+import com.spark.service.impl.UFOPServiceImpl;
 import com.spark.service.impl.UserServiceImpl;
 import com.spark.util.CustomMessageCodec;
 import com.spark.verticles.RestVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -34,7 +38,7 @@ public class GuiceModule extends AbstractModule {
             final JavaSparkContext sc = new JavaSparkContext(sparkConf);
             SchedulerFactory schedulerFactory = new StdSchedulerFactory();
             Scheduler scheduler = schedulerFactory.getScheduler();
-            Vertx vertx = Vertx.vertx();
+            Vertx vertx = Vertx.vertx(new VertxOptions().setMaxWorkerExecuteTime(Long.MAX_VALUE));
 
             bind(Vertx.class).toInstance(vertx);
             bind(EventBus.class).toInstance(vertx.eventBus());
@@ -46,9 +50,10 @@ public class GuiceModule extends AbstractModule {
             bind(SparkSession.class).toInstance(new SparkSession(sc.sc()));
             bind(SparkService.class).to(SparkServiceImpl.class);
             bind(UserService.class).to(UserServiceImpl.class);
+            bind(UFOPService.class).to(UFOPServiceImpl.class);
             bind(RestVerticle.class);
             bind(UOUpdateHandler.class);
-            bind(CustomMessageCodec.class);
+            bind(CustomMessageCodec.class).in(Scopes.NO_SCOPE);
             final Multibinder<MessengerHandler> messengerHandlers = Multibinder.newSetBinder(binder(), MessengerHandler.class);
             messengerHandlers.addBinding().to(LogMessengerHandler.class);
         } catch (Exception ex) {

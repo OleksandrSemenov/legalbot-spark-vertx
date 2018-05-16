@@ -7,6 +7,8 @@ import com.google.inject.Inject;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 
+import java.util.UUID;
+
 /**
  * @author Taras Zubrei
  */
@@ -20,7 +22,7 @@ public class CustomMessageCodec<T> implements MessageCodec<T, T> {
 
     @Override
     public void encodeToWire(Buffer buffer, T o) {
-        try(final Output output = new Output()) {
+        try (final Output output = new Output()) {
             kryo.writeClassAndObject(output, o);
             buffer.appendBytes(output.toBytes());
             output.close();
@@ -41,7 +43,7 @@ public class CustomMessageCodec<T> implements MessageCodec<T, T> {
 
     @Override
     public String name() {
-        return this.getClass().getSimpleName();
+        return this.getClass().getSimpleName() + "_" + UUID.randomUUID();
     }
 
     @Override
