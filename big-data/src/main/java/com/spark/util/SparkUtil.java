@@ -1,10 +1,11 @@
 package com.spark.util;
 
-import com.spark.models.FOP;
-import com.spark.models.UO;
-import com.spark.models.UOUpdate;
+import com.core.models.FOP;
+import com.core.models.UO;
+import com.core.models.UOUpdate;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;
 import org.redisson.api.RMap;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.spark.util.RedisKeys.UO_TEMPLATE;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Taras Zubrei
@@ -33,7 +35,7 @@ public class SparkUtil {
                 .load(path)
                 .select("EDRPOU", "NAME", "SHORT_NAME", "ADDRESS", "BOSS", "KVED", "STAN", "FOUNDERS")
                 .toJavaRDD()
-                .map(UO::fromXml)
+                .map(SparkUtil::parseUO)
                 .persist(StorageLevel.DISK_ONLY());
         if (initial) {
             ds.foreach(t -> {
@@ -74,11 +76,33 @@ public class SparkUtil {
                 .load(path)
                 .select("FIO", "ADDRESS", "KVED", "STAN")
                 .toJavaRDD()
-                .foreach(t -> redisson.getList(RedisKeys.FOP).add(FOP.fromXml(t)));
+                .foreach(t -> redisson.getList(RedisKeys.FOP).add(SparkUtil.parseFOP(t)));
         if (!initial) eventBus.publish(EventBusChannels.FOP, redisson.getList(RedisKeys.FOP).size());
     }
 
     private static boolean isChanged(UO record) {
         return !redisson.getMap(String.format(UO_TEMPLATE, record.getId())).containsKey(record.hashCode());
+    }
+
+    private static FOP parseFOP(Row row) {
+        return new FOP(
+                row.getString(0),
+                row.getString(1),
+                row.getString(2),
+                row.getString(3)
+        );
+    }
+
+    private static UO parseUO(Row row) {
+        return new UO(
+                row.getLong(0),
+                row.getString(1),
+                row.getString(2),
+                row.getString(3),
+                row.getString(4),
+                row.getString(5),
+                row.getString(6),
+                row.get(7) != null ? row.<Row>getAs(7).<String>getList(0).stream().map(String::trim).collect(toList()) : new ArrayList<>()
+        );
     }
 }

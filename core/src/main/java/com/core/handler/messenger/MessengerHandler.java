@@ -1,8 +1,8 @@
-package com.spark.handler.messenger;
+package com.core.handler.messenger;
 
-import com.spark.models.UOUpdate;
-import com.spark.models.User;
-import com.spark.util.MessengerType;
+import com.core.models.UOUpdate;
+import com.core.models.User;
+import com.core.util.MessengerType;
 
 /**
  * @author Taras Zubrei

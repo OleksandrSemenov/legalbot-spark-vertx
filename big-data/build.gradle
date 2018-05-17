@@ -1,5 +1,5 @@
-buildscript{
-    repositories{
+buildscript {
+    repositories {
         mavenCentral()
         jcenter()
     }
@@ -12,11 +12,17 @@ apply plugin: 'application'
 apply plugin: 'com.bmuschko.docker-java-application'
 
 dependencies {
+    compile project(':core')
+    compile(project(':facebook-bot')) {
+        exclude group: 'com.fasterxml.jackson.core'
+        exclude group: 'com.fasterxml.jackson.dataformat'
+        exclude group: 'org.slf4j'
+    }
     compile "com.databricks:spark-xml_2.11:0.4.1"
-    compile ('org.apache.spark:spark-sql_2.11:2.3.0') {
+    compile('org.apache.spark:spark-sql_2.11:2.3.0') {
         exclude group: 'org.apache.hadoop'
     }
-    compile ('org.apache.spark:spark-core_2.11:2.3.0') {
+    compile('org.apache.spark:spark-core_2.11:2.3.0') {
         exclude group: 'org.apache.hadoop'
     }
     compile 'org.apache.hadoop:hadoop-client:2.8.3'
@@ -34,10 +40,10 @@ dependencies {
     compile 'org.reflections:reflections:0.9.11'
 
     compile libs.commons.lang
-    compile (libs.vertx.core) {
+    compile(libs.vertx.core) {
         exclude group: 'com.fasterxml.jackson.core'
     }
-    compile (libs.vertx.web) {
+    compile(libs.vertx.web) {
         exclude group: 'com.fasterxml.jackson.core'
     }
     compile libs.guava

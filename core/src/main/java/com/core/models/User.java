@@ -1,6 +1,6 @@
-package com.spark.models;
+package com.core.models;
 
-import com.spark.util.MessengerType;
+import com.core.util.MessengerType;
 
 import java.util.Map;
 import java.util.UUID;

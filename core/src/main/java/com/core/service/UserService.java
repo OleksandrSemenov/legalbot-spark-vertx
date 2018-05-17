@@ -1,7 +1,7 @@
-package com.spark.service;
+package com.core.service;
 
-import com.spark.models.User;
-import com.spark.util.Resource;
+import com.core.models.User;
+import com.core.util.Resource;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,9 +16,9 @@ public interface UserService {
 
     void subscribe(UUID userId, Resource to, String id);
 
-     List<User> findSubscribedTo(Resource to, String id);
+    List<User> findSubscribedTo(Resource to, String id);
 
-     boolean isSubscribed(UUID userId, Resource to, String id);
+    boolean isSubscribed(UUID userId, Resource to, String id);
 
     void unsubscribe(UUID userId, Resource from, String id);
 

@@ -1,7 +1,7 @@
 package com.spark.service;
 
-import com.spark.models.FOP;
-import com.spark.models.UO;
+import com.core.models.FOP;
+import com.core.models.UO;
 
 import java.util.List;
 import java.util.Map;

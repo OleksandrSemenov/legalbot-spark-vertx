@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':core')
+    compile libs.vertx.core
+    compile libs.vertx.web
+    compile libs.jersey_rx_client
+    compile libs.commons.lang
+    compile libs.fst
+    compile group: 'commons-io', name: 'commons-io', version: '2.4'
+    compile group: 'com.restfb', name: 'restfb', version: '1.45.0'
+    compile libs.guava
+    compile 'com.google.inject:guice:4.2.0'
+    testCompile libs.test.junit
+}

@@ -1,7 +1,6 @@
-package com.spark.models;
+package com.core.models;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.spark.sql.Row;
 
 import java.util.Objects;
 
@@ -22,15 +21,6 @@ public class FOP {
         if (StringUtils.isNotBlank(address)) this.address = address.trim();
         if (StringUtils.isNotBlank(kved)) this.kved = kved.trim();
         if (StringUtils.isNotBlank(stan)) this.stan = stan.trim();
-    }
-
-    public static FOP fromXml(Row row) {
-        return new FOP(
-                row.getString(0),
-                row.getString(1),
-                row.getString(2),
-                row.getString(3)
-        );
     }
 
     public String getName() {

@@ -1,4 +1,4 @@
-package com.spark.models;
+package com.core.models;
 
 import java.util.List;
 import java.util.Objects;

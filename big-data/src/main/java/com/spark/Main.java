@@ -1,12 +1,14 @@
 package com.spark;
 
+import com.bot.facebook.FacebookModule;
+import com.bot.facebook.verticle.FacebookVerticle;
+import com.core.models.Event;
+import com.core.models.UOUpdate;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.spark.handler.UOUpdateHandler;
 import com.spark.job.UFOPJob;
-import com.spark.models.Event;
-import com.spark.models.UOUpdate;
 import com.spark.service.SparkService;
 import com.spark.util.CustomMessageCodec;
 import com.spark.util.EventBusChannels;
@@ -31,7 +33,7 @@ public class Main {
     private static final int SCHEDULER_HOUR = 23;
 
     public static void main(String[] args) throws Exception {
-        final Injector injector = Guice.createInjector(new GuiceModule());
+        final Injector injector = Guice.createInjector(new GuiceModule(), new FacebookModule());
         configureQuartz(injector);
         configureVertx(injector);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(injector)));
@@ -58,6 +60,7 @@ public class Main {
     public static void configureVertx(Injector injector) {
         Vertx vertx = injector.getInstance(Vertx.class);
         vertx.deployVerticle(injector.getInstance(RestVerticle.class));
+        vertx.deployVerticle(injector.getInstance(FacebookVerticle.class));
         vertx.eventBus().<UOUpdate>consumer(EventBusChannels.UO).handler(injector.getInstance(UOUpdateHandler.class));
         Reflections ref = new Reflections(Event.class.getPackage().getName());
         final CustomMessageCodec messageCodec = injector.getInstance(CustomMessageCodec.class);

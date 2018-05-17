@@ -1,13 +1,16 @@
 package com.spark.util;
 
+import com.bot.facebook.FacebookModule;
+import com.core.models.User;
+import com.core.service.UserService;
+import com.core.util.MessengerType;
+import com.core.util.Resource;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.spark.GuiceModule;
 import com.spark.Main;
-import com.spark.models.User;
 import com.spark.service.SparkService;
-import com.spark.service.UserService;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.redisson.api.RedissonClient;
@@ -23,7 +26,7 @@ import java.util.stream.Stream;
  */
 public class SparkUtilTest {
     private static final Logger logger = LoggerFactory.getLogger(SparkUtilTest.class);
-    private static final Injector injector = Guice.createInjector(new GuiceModule());
+    private static final Injector injector = Guice.createInjector(new GuiceModule(), new FacebookModule());
 
     @Test
     public void uo() {
@@ -36,6 +39,7 @@ public class SparkUtilTest {
         User user = new User();
         final HashMap<MessengerType, String> map = new HashMap<>();
         map.put(MessengerType.LOG, "");
+        map.put(MessengerType.FACEBOOK, "social id");
         user.setMessengerIds(map);
         user = userService.save(user);
         userService.subscribe(user.getId(), Resource.UO, "0");

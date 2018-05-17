@@ -1,19 +1,15 @@
-package com.spark.models;
+package com.core.models;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.spark.sql.Row;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Taras Zubrei
  */
-public class UO implements Serializable{
+public class UO implements Serializable {
     private Long id;
     private String name;
     private String shortName;
@@ -35,19 +31,6 @@ public class UO implements Serializable{
         if (StringUtils.isNotBlank(kved)) this.kved = kved.trim();
         if (StringUtils.isNotBlank(stan)) this.stan = stan.trim();
         this.founders = founders;
-    }
-
-    public static UO fromXml(Row row) {
-        return new UO(
-                row.getLong(0),
-                row.getString(1),
-                row.getString(2),
-                row.getString(3),
-                row.getString(4),
-                row.getString(5),
-                row.getString(6),
-                row.get(7) != null ? row.<Row>getAs(7).<String>getList(0).stream().map(String::trim).collect(toList()) : new ArrayList<>()
-        );
     }
 
     public Long getId() {

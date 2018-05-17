@@ -1,8 +1,8 @@
 package com.spark.service.impl;
 
+import com.core.models.FOP;
+import com.core.models.UO;
 import com.google.inject.Inject;
-import com.spark.models.FOP;
-import com.spark.models.UO;
 import com.spark.service.UFOPService;
 import com.spark.util.RedisKeys;
 import org.redisson.api.RedissonClient;

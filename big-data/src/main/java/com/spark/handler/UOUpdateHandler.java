@@ -1,11 +1,11 @@
 package com.spark.handler;
 
+import com.core.handler.messenger.MessengerHandler;
+import com.core.models.UOUpdate;
+import com.core.service.UserService;
+import com.core.util.MessengerType;
+import com.core.util.Resource;
 import com.google.inject.Inject;
-import com.spark.handler.messenger.MessengerHandler;
-import com.spark.models.UOUpdate;
-import com.spark.service.UserService;
-import com.spark.util.MessengerType;
-import com.spark.util.Resource;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
 import org.slf4j.Logger;

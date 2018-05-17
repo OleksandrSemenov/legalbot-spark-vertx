@@ -4,15 +4,16 @@ package com.spark;
  * @author Taras Zubrei
  */
 
+import com.bot.facebook.handler.messenger.FacebookMessageHandler;
+import com.core.handler.messenger.MessengerHandler;
+import com.core.service.UserService;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.Multibinder;
 import com.spark.handler.UOUpdateHandler;
 import com.spark.handler.messenger.LogMessengerHandler;
-import com.spark.handler.messenger.MessengerHandler;
 import com.spark.service.SparkService;
 import com.spark.service.UFOPService;
-import com.spark.service.UserService;
 import com.spark.service.impl.SparkServiceImpl;
 import com.spark.service.impl.UFOPServiceImpl;
 import com.spark.service.impl.UserServiceImpl;
@@ -59,6 +60,7 @@ public class GuiceModule extends AbstractModule {
             bind(CustomMessageCodec.class).in(Scopes.NO_SCOPE);
             final Multibinder<MessengerHandler> messengerHandlers = Multibinder.newSetBinder(binder(), MessengerHandler.class);
             messengerHandlers.addBinding().to(LogMessengerHandler.class);
+            messengerHandlers.addBinding().to(FacebookMessageHandler.class);
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to start up application", ex);
         }

@@ -1,4 +1,4 @@
-package com.spark.util;
+package com.core.util;
 
 /**
  * @author Taras Zubrei

@@ -1,9 +1,9 @@
 package com.spark.service.impl;
 
+import com.core.models.User;
+import com.core.service.UserService;
+import com.core.util.Resource;
 import com.google.inject.Inject;
-import com.spark.models.User;
-import com.spark.service.UserService;
-import com.spark.util.Resource;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 

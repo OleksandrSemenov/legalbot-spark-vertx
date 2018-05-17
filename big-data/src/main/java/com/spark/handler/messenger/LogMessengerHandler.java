@@ -1,8 +1,9 @@
 package com.spark.handler.messenger;
 
-import com.spark.models.UOUpdate;
-import com.spark.models.User;
-import com.spark.util.MessengerType;
+import com.core.handler.messenger.MessengerHandler;
+import com.core.models.UOUpdate;
+import com.core.models.User;
+import com.core.util.MessengerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
