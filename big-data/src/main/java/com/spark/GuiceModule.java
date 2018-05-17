@@ -29,6 +29,7 @@ import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 
 public class GuiceModule extends AbstractModule {
     @Override
@@ -39,6 +40,8 @@ public class GuiceModule extends AbstractModule {
             SchedulerFactory schedulerFactory = new StdSchedulerFactory();
             Scheduler scheduler = schedulerFactory.getScheduler();
             Vertx vertx = Vertx.vertx(new VertxOptions().setMaxWorkerExecuteTime(Long.MAX_VALUE));
+            final Config config = new Config();
+            config.useSingleServer().setAddress("redis:6379");
 
             bind(Vertx.class).toInstance(vertx);
             bind(EventBus.class).toInstance(vertx.eventBus());
@@ -46,7 +49,7 @@ public class GuiceModule extends AbstractModule {
             bind(Scheduler.class).toInstance(scheduler);
             bind(SparkConf.class).toInstance(sparkConf);
             bind(JavaSparkContext.class).toInstance(sc);
-            bind(RedissonClient.class).toInstance(Redisson.create());
+            bind(RedissonClient.class).toInstance(Redisson.create(config));
             bind(SparkSession.class).toInstance(new SparkSession(sc.sc()));
             bind(SparkService.class).to(SparkServiceImpl.class);
             bind(UserService.class).to(UserServiceImpl.class);

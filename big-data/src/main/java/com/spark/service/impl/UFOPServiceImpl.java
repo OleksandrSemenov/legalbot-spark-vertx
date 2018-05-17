@@ -11,7 +11,6 @@ import org.redisson.client.protocol.ScoredEntry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toMap;
@@ -34,7 +33,7 @@ public class UFOPServiceImpl implements UFOPService {
 
     @Override
     public Map<String, List<UO>> findUO(int page, int size) {
-        return redisson.<Long>getScoredSortedSet(RedisKeys.UO).entryRange(page * size, (page + 1 ) * size)
+        return redisson.<Long>getScoredSortedSet(RedisKeys.UO).entryRange(page * size, (page + 1) * size)
                 .stream()
                 .map(ScoredEntry::getValue)
                 .map(String::valueOf)

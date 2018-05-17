@@ -1,3 +1,12 @@
+app:
+  image: legalbot:latest
+  container_name: legalbot
+  ports:
+    - 7171:7171
+  links:
+    - master
+    - redis
+
 master:
   image: gettyimages/spark:2.3.0-hadoop-2.8
   command: bin/spark-class org.apache.spark.deploy.master.Master -h master

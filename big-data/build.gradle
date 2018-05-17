@@ -3,7 +3,13 @@ buildscript{
         mavenCentral()
         jcenter()
     }
+    dependencies {
+        classpath 'com.bmuschko:gradle-docker-plugin:3.2.8'
+    }
 }
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'com.bmuschko.docker-java-application'
 
 dependencies {
     compile "com.databricks:spark-xml_2.11:0.4.1"
@@ -36,4 +42,13 @@ dependencies {
     }
     compile libs.guava
     testCompile libs.test.junit
+}
+mainClassName = 'com.spark.Main'
+
+docker {
+    javaApplication {
+        baseImage = 'openjdk:8-jre-alpine'
+        ports = [7171]
+        tag = 'legalbot'
+    }
 }
