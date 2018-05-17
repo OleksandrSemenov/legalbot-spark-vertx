@@ -34,7 +34,7 @@ public class SparkUtil {
                 .select("EDRPOU", "NAME", "SHORT_NAME", "ADDRESS", "BOSS", "KVED", "STAN", "FOUNDERS")
                 .toJavaRDD()
                 .map(UO::fromXml)
-                .persist(StorageLevel.MEMORY_AND_DISK());
+                .persist(StorageLevel.DISK_ONLY());
         if (initial) {
             ds.foreach(t -> {
                 redisson.getScoredSortedSet(RedisKeys.UO).add(t.getId(), t.getId());
