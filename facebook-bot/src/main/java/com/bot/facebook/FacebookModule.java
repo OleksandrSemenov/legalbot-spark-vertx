@@ -2,8 +2,10 @@ package com.bot.facebook;
 
 import com.bot.facebook.service.FacebookService;
 import com.bot.facebook.service.impl.FacebookServiceImpl;
+import com.bot.facebook.template.MessageTemplates;
 import com.bot.facebook.verticle.FacebookVerticle;
 import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.Version;
@@ -20,5 +22,7 @@ public class FacebookModule extends AbstractModule {
         bind(FacebookClient.class).toInstance(pageClient);
         bind(FacebookService.class).to(FacebookServiceImpl.class);
         bind(FacebookVerticle.class);
+        bindConstant().annotatedWith(Names.named("i18n")).to("i18n");
+        bind(MessageTemplates.class);
     }
 }

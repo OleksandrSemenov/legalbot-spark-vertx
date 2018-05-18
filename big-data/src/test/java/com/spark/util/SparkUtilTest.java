@@ -17,7 +17,7 @@ import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -37,10 +37,7 @@ public class SparkUtilTest {
 
         Stream.of("uo/0", "uo/9").forEach(key -> redisson.getMap(key).delete());
         User user = new User();
-        final HashMap<MessengerType, String> map = new HashMap<>();
-        map.put(MessengerType.LOG, "");
-        map.put(MessengerType.FACEBOOK, "social id");
-        user.setMessengerIds(map);
+        user.addMessenger(MessengerType.FACEBOOK, "social id", Locale.US);
         user = userService.save(user);
         userService.subscribe(user.getId(), Resource.UO, "0");
         userService.subscribe(user.getId(), Resource.UO, "9");
