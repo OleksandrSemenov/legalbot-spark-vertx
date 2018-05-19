@@ -124,7 +124,7 @@ public class RestVerticle extends AbstractVerticle {
         });
         router.get("/data/uo/:id").handler(ctx -> {
             final String id = ctx.request().getParam("id");
-            if (StringUtils.isBlank(id) || id.matches("\\d+"))
+            if (StringUtils.isBlank(id) || !id.matches("\\d+"))
                 ctx.response().setStatusCode(400).end();
             else {
                 ctx.response().end(Json.encodePrettily(ufopService.findUO(id)));
