@@ -37,8 +37,8 @@ public class FacebookVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         router.route().handler(BodyHandler.create());
-        router.post("/get/scissors/webhook").handler(this::webhookPost);
-        router.get("/get/scissors/webhook").handler(this::webhookGet);
+        router.post("/webhook").handler(this::webhookPost);
+        router.get("/webhook").handler(this::webhookGet);
         router.route("/").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.putHeader("content-type", "text/html").end("<h1>Facebook bot</h1>");
