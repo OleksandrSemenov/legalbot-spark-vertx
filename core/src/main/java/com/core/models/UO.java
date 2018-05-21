@@ -10,7 +10,7 @@ import java.util.Objects;
  * @author Taras Zubrei
  */
 public class UO implements Serializable {
-    private Long id;
+    private String id;
     private String name;
     private String shortName;
     private String address;
@@ -22,7 +22,7 @@ public class UO implements Serializable {
     public UO() {
     }
 
-    public UO(Long id, String name, String shortName, String address, String boss, String kved, String stan, List<String> founders) {
+    public UO(String id, String name, String shortName, String address, String boss, String kved, String stan, List<String> founders) {
         this.id = id;
         if (StringUtils.isNotBlank(name)) this.name = name.trim();
         if (StringUtils.isNotBlank(shortName)) this.shortName = shortName.trim();
@@ -33,11 +33,11 @@ public class UO implements Serializable {
         this.founders = founders;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

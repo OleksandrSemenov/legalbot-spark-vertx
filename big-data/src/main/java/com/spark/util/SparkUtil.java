@@ -2,30 +2,32 @@ package com.spark.util;
 
 import com.core.models.FOP;
 import com.core.models.UO;
+import com.core.models.UOHistory;
 import com.core.models.UOUpdate;
+import com.spark.repository.FOPRepository;
+import com.spark.repository.UORepository;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;
-import org.redisson.api.RMap;
-import org.redisson.api.RedissonClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static com.spark.util.RedisKeys.UO_TEMPLATE;
 import static java.util.stream.Collectors.toList;
 
 /**
  * @author Taras Zubrei
  */
 public class SparkUtil {
-    private static RedissonClient redisson;
+    private static UORepository uoRepository;
+    private static FOPRepository fopRepository;
     private static EventBus eventBus;
 
-    public static void parseUO(SparkSession session, RedissonClient redissonClient, EventBus bus, String path, boolean initial) {
-        redisson = redissonClient;
+    public static void parseUO(SparkSession session, UORepository repository, EventBus bus, String path, boolean initial) {
+        uoRepository = repository;
         eventBus = bus;
         JavaRDD<UO> ds = session.read()
                 .format("com.databricks.spark.xml")
@@ -38,36 +40,31 @@ public class SparkUtil {
                 .map(SparkUtil::parseUO)
                 .persist(StorageLevel.DISK_ONLY());
         if (initial) {
-            ds.foreach(t -> {
-                redisson.getScoredSortedSet(RedisKeys.UO).add(t.getId(), t.getId());
-                redisson.getMap(String.format(UO_TEMPLATE, t.getId())).fastPut(t.hashCode(), t);
-            });
+            ds.foreach(t -> uoRepository.save(t));
         } else {
-            final List<Long> updatedIds = ds
-                    .filter(SparkUtil::isChanged)
+            final List<String> updatedIds = ds
+                    .filter(record -> uoRepository.isChanged(record))
                     .map(UO::getId)
                     .collect();
             if (!updatedIds.isEmpty()) {
                 ds.filter(t -> updatedIds.contains(t.getId()))
                         .groupBy(UO::getId)
                         .foreach(tuple -> {
-                            final RMap<Integer, UO> map = redisson.getMap(String.format(UO_TEMPLATE, tuple._1));
-                            final ArrayList<UO> previousData = new ArrayList<>(map.values());
-                            map.delete();
-                            redisson.getScoredSortedSet(RedisKeys.UO).add(tuple._1, tuple._1);
-                            tuple._2.forEach(t -> map.fastPut(t.hashCode(), t));
+                            List<UO> previousData = Optional.ofNullable(uoRepository.findOne(tuple._1)).map(UOHistory::getData).orElse(new ArrayList<>());
+                            final UOHistory history = new UOHistory(tuple._1, tuple._2);
+                            uoRepository.save(history);
                             if (!previousData.isEmpty())
-                                eventBus.publish(EventBusChannels.UO, new UOUpdate(tuple._1, previousData, new ArrayList<>(map.values())));
+                                eventBus.publish(EventBusChannels.UO, new UOUpdate(tuple._1, previousData, history.getData()));
                         });
             }
         }
         ds.unpersist();
     }
 
-    public static void parseFOP(SparkSession session, RedissonClient redissonClient, EventBus bus, String path, boolean initial) {
-        redisson = redissonClient;
+    public static void parseFOP(SparkSession session, FOPRepository repository, EventBus bus, String path, boolean initial) {
+        fopRepository = repository;
         eventBus = bus;
-        redisson.getList(RedisKeys.FOP).delete();
+        fopRepository.deleteAll();
         session.read()
                 .format("com.databricks.spark.xml")
                 .option("rootTag", "DATA")
@@ -76,12 +73,8 @@ public class SparkUtil {
                 .load(path)
                 .select("FIO", "ADDRESS", "KVED", "STAN")
                 .toJavaRDD()
-                .foreach(t -> redisson.getList(RedisKeys.FOP).add(SparkUtil.parseFOP(t)));
-        if (!initial) eventBus.publish(EventBusChannels.FOP, redisson.getList(RedisKeys.FOP).size());
-    }
-
-    private static boolean isChanged(UO record) {
-        return !redisson.getMap(String.format(UO_TEMPLATE, record.getId())).containsKey(record.hashCode());
+                .foreach(t -> fopRepository.save(parseFOP(t)));
+        if (!initial) eventBus.publish(EventBusChannels.FOP, "success");
     }
 
     private static FOP parseFOP(Row row) {
@@ -95,7 +88,7 @@ public class SparkUtil {
 
     private static UO parseUO(Row row) {
         return new UO(
-                row.getLong(0),
+                String.valueOf(row.getLong(0)),
                 row.getString(1),
                 row.getString(2),
                 row.getString(3),

@@ -2,9 +2,9 @@ package com.spark.service;
 
 import com.core.models.FOP;
 import com.core.models.UO;
+import com.core.models.UOHistory;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Taras Zubrei
@@ -12,7 +12,7 @@ import java.util.Map;
 public interface UFOPService {
     List<UO> findUO(String id);
 
-    Map<String, List<UO>> findUO(int page, int size);
+    List<UOHistory> findPagedUO(Integer page);
 
-    List<FOP> findFOP(int page, int size);
+    List<FOP> findPagedFOP(Integer page);
 }

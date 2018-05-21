@@ -2,47 +2,39 @@ package com.spark.service.impl;
 
 import com.core.models.FOP;
 import com.core.models.UO;
+import com.core.models.UOHistory;
 import com.google.inject.Inject;
+import com.spark.repository.FOPRepository;
+import com.spark.repository.UORepository;
 import com.spark.service.UFOPService;
-import com.spark.util.RedisKeys;
-import org.redisson.api.RedissonClient;
-import org.redisson.client.protocol.ScoredEntry;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Taras Zubrei
  */
 public class UFOPServiceImpl implements UFOPService {
-    private final RedissonClient redisson;
+    private final UORepository uoRepository;
+    private final FOPRepository fopRepository;
 
     @Inject
-    public UFOPServiceImpl(RedissonClient redisson) {
-        this.redisson = redisson;
+    public UFOPServiceImpl(UORepository uoRepository, FOPRepository fopRepository) {
+        this.uoRepository = uoRepository;
+        this.fopRepository = fopRepository;
     }
 
     @Override
     public List<UO> findUO(String id) {
-        return new ArrayList<>(redisson.<String, UO>getMap(String.format(RedisKeys.UO_TEMPLATE, id)).values());
+        return uoRepository.findOne(id).getData();
     }
 
     @Override
-    public Map<String, List<UO>> findUO(int page, int size) {
-        return redisson.<Long>getScoredSortedSet(RedisKeys.UO).entryRange(page * size, (page + 1) * size)
-                .stream()
-                .map(ScoredEntry::getValue)
-                .map(String::valueOf)
-                .map(this::findUO)
-                .collect(toMap(t -> String.valueOf(t.get(0).getId()), Function.identity()));
+    public List<UOHistory> findPagedUO(Integer page) {
+        return uoRepository.findPaged(page);
     }
 
     @Override
-    public List<FOP> findFOP(int page, int size) {
-        return redisson.<FOP>getList(RedisKeys.FOP).subList(page * size, (page + 1) * size);
+    public List<FOP> findPagedFOP(Integer page) {
+        return fopRepository.findPaged(page);
     }
 }

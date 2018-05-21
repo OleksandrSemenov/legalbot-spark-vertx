@@ -10,10 +10,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.spark.GuiceModule;
 import com.spark.Main;
+import com.spark.repository.UORepository;
 import com.spark.service.SparkService;
 import org.junit.AfterClass;
 import org.junit.Test;
-import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,11 +31,12 @@ public class SparkUtilTest {
     @Test
     public void uo() {
         Main.configureVertx(injector);
+        Main.configureMorphia(injector);
         final UserService userService = injector.getInstance(UserService.class);
-        final RedissonClient redisson = injector.getInstance(RedissonClient.class);
+        final UORepository uoRepository = injector.getInstance(UORepository.class);
         final SparkService sparkService = injector.getInstance(SparkService.class);
 
-        Stream.of("uo/0", "uo/9").forEach(key -> redisson.getMap(key).delete());
+        Stream.of("0", "9").forEach(uoRepository::delete);
         User user = new User();
         user.addMessenger(MessengerType.FACEBOOK, "social id", Locale.US);
         user = userService.save(user);

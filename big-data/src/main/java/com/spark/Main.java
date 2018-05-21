@@ -16,6 +16,9 @@ import com.spark.verticles.RestVerticle;
 import io.vertx.core.Vertx;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.ext.guice.GuiceExtension;
 import org.quartz.*;
 import org.redisson.api.RedissonClient;
 import org.reflections.Reflections;
@@ -34,6 +37,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         final Injector injector = Guice.createInjector(new GuiceModule(), new FacebookModule());
+        configureMorphia(injector);
         configureQuartz(injector);
         configureVertx(injector);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(injector)));
@@ -55,6 +59,11 @@ public class Main {
                 .build();
 
         scheduler.scheduleJob(job, trigger);
+    }
+
+    public static void configureMorphia(Injector injector) {
+        new GuiceExtension(injector.getInstance(Morphia.class), injector);
+        injector.getInstance(Datastore.class).ensureIndexes();
     }
 
     public static void configureVertx(Injector injector) {

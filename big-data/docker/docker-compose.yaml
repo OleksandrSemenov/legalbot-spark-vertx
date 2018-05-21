@@ -7,6 +7,7 @@ app:
   links:
     - master
     - redis
+    - mongodb
 
 master:
   image: gettyimages/spark:2.3.0-hadoop-2.8
@@ -58,3 +59,7 @@ redis:
   image: redis:alpine
   command: redis-server --appendonly yes
   container_name: redis
+
+mongodb:
+  image: mongo:3.7
+  container_name: mongodb

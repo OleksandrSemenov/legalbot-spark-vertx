@@ -1,28 +1,31 @@
 package com.core.models;
 
 import com.core.util.MessengerType;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author Taras Zubrei
  */
+@Entity("user")
 public class User {
-    private UUID id;
+    @Id
+    private String id;
     private Map<MessengerType, String> messengerIds = new HashMap<>();
     private Map<MessengerType, String> locales = new HashMap<>();
 
     public User() {
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

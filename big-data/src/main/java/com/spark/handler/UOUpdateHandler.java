@@ -33,7 +33,7 @@ public class UOUpdateHandler implements Handler<Message<UOUpdate>> {
     @Override
     public void handle(Message<UOUpdate> event) {
         final UOUpdate update = event.body();
-        userService.findSubscribedTo(Resource.UO, update.getId().toString()).forEach(user -> user.getMessengerIds()
+        userService.findSubscribedTo(Resource.UO, update.getId()).forEach(user -> user.getMessengerIds()
                 .entrySet()
                 .stream()
                 .filter(entry -> handlers.containsKey(entry.getKey()))

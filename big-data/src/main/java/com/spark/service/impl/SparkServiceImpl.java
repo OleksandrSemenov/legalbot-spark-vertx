@@ -1,6 +1,8 @@
 package com.spark.service.impl;
 
 import com.google.inject.Inject;
+import com.spark.repository.FOPRepository;
+import com.spark.repository.UORepository;
 import com.spark.service.SparkService;
 import com.spark.util.FileUtil;
 import com.spark.util.HttpUtil;
@@ -30,12 +32,16 @@ public class SparkServiceImpl implements SparkService, Serializable {
 
     private final SparkSession session;
     private final RedissonClient redisson;
+    private final UORepository uoRepository;
+    private final FOPRepository fopRepository;
     private final EventBus eventBus;
 
     @Inject
-    public SparkServiceImpl(SparkSession session, RedissonClient redisson, EventBus eventBus) {
+    public SparkServiceImpl(SparkSession session, RedissonClient redisson, UORepository uoRepository, FOPRepository fopRepository, EventBus eventBus) {
         this.session = session;
         this.redisson = redisson;
+        this.uoRepository = uoRepository;
+        this.fopRepository = fopRepository;
         this.eventBus = eventBus;
     }
 
@@ -69,13 +75,13 @@ public class SparkServiceImpl implements SparkService, Serializable {
 
     @Override
     public void parseFOPXml(String path, boolean initial) {
-        SparkUtil.parseFOP(session, redisson, eventBus, path, initial);
+        SparkUtil.parseFOP(session, fopRepository, eventBus, path, initial);
         logger.info("Successfully parsed FOP data");
     }
 
     @Override
     public void parseUOXml(String path, boolean initial) {
-        SparkUtil.parseUO(session, redisson, eventBus, path, initial);
+        SparkUtil.parseUO(session, uoRepository, eventBus, path, initial);
         logger.info("Successfully parsed UO data");
     }
 }

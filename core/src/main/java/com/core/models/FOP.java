@@ -1,13 +1,18 @@
 package com.core.models;
 
 import org.apache.commons.lang3.StringUtils;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 
 import java.util.Objects;
 
 /**
  * @author Taras Zubrei
  */
+@Entity("fop")
 public class FOP {
+    @Id
+    private String id;
     private String name;
     private String address;
     private String kved;
@@ -21,6 +26,14 @@ public class FOP {
         if (StringUtils.isNotBlank(address)) this.address = address.trim();
         if (StringUtils.isNotBlank(kved)) this.kved = kved.trim();
         if (StringUtils.isNotBlank(stan)) this.stan = stan.trim();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -60,7 +73,8 @@ public class FOP {
         if (this == o) return true;
         if (!(o instanceof FOP)) return false;
         FOP fop = (FOP) o;
-        return Objects.equals(name, fop.name) &&
+        return Objects.equals(id, fop.id) &&
+                Objects.equals(name, fop.name) &&
                 Objects.equals(address, fop.address) &&
                 Objects.equals(kved, fop.kved) &&
                 Objects.equals(stan, fop.stan);
@@ -68,13 +82,14 @@ public class FOP {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, address, kved, stan);
+        return Objects.hash(id, name, address, kved, stan);
     }
 
     @Override
     public String toString() {
         return "FOP{" +
-                "name='" + name + '\'' +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
                 ", address='" + address + '\'' +
                 ", kved='" + kved + '\'' +
                 ", stan='" + stan + '\'' +

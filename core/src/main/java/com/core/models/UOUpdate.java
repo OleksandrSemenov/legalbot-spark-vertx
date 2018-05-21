@@ -8,17 +8,17 @@ import java.util.Objects;
  */
 @Event
 public class UOUpdate {
-    private final Long id;
+    private final String id;
     private final List<UO> previous;
     private final List<UO> actual;
 
-    public UOUpdate(Long id, List<UO> previous, List<UO> actual) {
+    public UOUpdate(String id, List<UO> previous, List<UO> actual) {
         this.id = id;
         this.previous = previous;
         this.actual = actual;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 

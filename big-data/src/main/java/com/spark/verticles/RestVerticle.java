@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author Taras Zubrei
@@ -62,7 +61,7 @@ public class RestVerticle extends AbstractVerticle {
             if (StringUtils.isBlank(id))
                 ctx.response().setStatusCode(400).end();
             else
-                ctx.response().end(Json.encodePrettily(userService.find(UUID.fromString(id))));
+                ctx.response().end(Json.encodePrettily(userService.find(id)));
         });
         router.post("/user").handler(ctx -> ctx.response().setStatusCode(201).end(Json.encodePrettily(userService.save(Json.decodeValue(ctx.getBodyAsString(), User.class)))));
         router.post("/user/:id/subscriptions/:resource/:resourceId").handler(ctx -> {
@@ -75,7 +74,7 @@ public class RestVerticle extends AbstractVerticle {
                     || StringUtils.isBlank(resourceId))
                 ctx.response().setStatusCode(400).end();
             else {
-                userService.subscribe(UUID.fromString(id), Resource.fromName(resource), resourceId);
+                userService.subscribe(id, Resource.fromName(resource), resourceId);
                 ctx.response().setStatusCode(201).end();
             }
         });
@@ -89,7 +88,7 @@ public class RestVerticle extends AbstractVerticle {
                     || StringUtils.isBlank(resourceId))
                 ctx.response().setStatusCode(400).end();
             else {
-                if (userService.isSubscribed(UUID.fromString(id), Resource.fromName(resource), resourceId))
+                if (userService.isSubscribed(id, Resource.fromName(resource), resourceId))
                     ctx.response().setStatusCode(200).end();
                 else
                     ctx.response().setStatusCode(404).end();
@@ -105,7 +104,7 @@ public class RestVerticle extends AbstractVerticle {
                     || StringUtils.isBlank(resourceId))
                 ctx.response().setStatusCode(400).end();
             else {
-                userService.unsubscribe(UUID.fromString(id), Resource.fromName(resource), resourceId);
+                userService.unsubscribe(id, Resource.fromName(resource), resourceId);
                 ctx.response().setStatusCode(201).end();
             }
         });
@@ -114,13 +113,12 @@ public class RestVerticle extends AbstractVerticle {
             if (StringUtils.isBlank(id))
                 ctx.response().setStatusCode(400).end();
             else
-                ctx.response().end(Json.encodePrettily(userService.delete(UUID.fromString(id))));
+                ctx.response().end(Json.encodePrettily(userService.delete(id)));
         });
 
         router.get("/data/uo").handler(ctx -> {
-            final Integer size = Optional.ofNullable(ctx.request().getParam("size")).map(Integer::valueOf).orElse(10);
             final Integer page = Optional.ofNullable(ctx.request().getParam("page")).map(Integer::valueOf).orElse(0);
-            ctx.response().end(Json.encodePrettily(ufopService.findUO(page, size)));
+            ctx.response().end(Json.encodePrettily(ufopService.findPagedUO(page)));
         });
         router.get("/data/uo/:id").handler(ctx -> {
             final String id = ctx.request().getParam("id");
@@ -131,9 +129,8 @@ public class RestVerticle extends AbstractVerticle {
             }
         });
         router.get("/data/fop").handler(ctx -> {
-            final Integer size = Optional.ofNullable(ctx.request().getParam("size")).map(Integer::valueOf).orElse(10);
             final Integer page = Optional.ofNullable(ctx.request().getParam("page")).map(Integer::valueOf).orElse(0);
-            ctx.response().end(Json.encodePrettily(ufopService.findFOP(page, size)));
+            ctx.response().end(Json.encodePrettily(ufopService.findPagedFOP(page)));
         });
 
         router.route("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("<h1>Legal bot main page</h1>"));
