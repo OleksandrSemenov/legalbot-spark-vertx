@@ -14,7 +14,7 @@ import com.restfb.Version;
  * @author Taras Zubrei
  */
 public class FacebookModule extends AbstractModule {
-    private final static String PAGE_ACCESS_TOKEN = "EAAbwqJZAfCccBAM1oqFZAZBDRfxkBnh9Ppuf5w1Mn6jzyNLAdQXVH8ErZBgZCiBUvHuMg4R6532ZB2wqdqBCQNpr2HfalmGHs623dzFvwujeEOXH2pwesM5Q52FoqZCtnvwBYtZBTw8kL9fJBa46CSy7hZC5mHvsht7rLXk205nYOSgZDZD";
+    private final static String PAGE_ACCESS_TOKEN = "EAACzPQ0a8wYBALV9Gqn2xWat8nZCHuI0jDsEiHPcoZBsroj2wVmNhyRMjPxJ22RQZC4fOjaLdQHhbkaZBStNevmvPvi8lHp9wNE9yutMrMWgYEu2Q4W8JtOaLjfJFD1CbdfsVXQz5ZA2hE5alNHSQ3B5olZCQMupJ2uvpENAt4vwZDZD";
 
     @Override
     protected void configure() {
