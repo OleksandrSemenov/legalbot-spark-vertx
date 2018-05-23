@@ -15,5 +15,10 @@ dependencies {
     compile group: 'com.restfb', name: 'restfb', version: '1.45.0'
     compile libs.guava
     compile 'com.google.inject:guice:4.2.0'
+    compile('org.redisson:redisson:3.3.0') {
+        exclude group: 'com.fasterxml.jackson.core'
+        exclude group: 'com.fasterxml.jackson.dataformat'
+        exclude group: 'org.slf4j'
+    }
     testCompile libs.test.junit
 }

@@ -1,4 +1,4 @@
-package com.spark.service;
+package com.core.service;
 
 import com.core.models.FOP;
 import com.core.models.UO;

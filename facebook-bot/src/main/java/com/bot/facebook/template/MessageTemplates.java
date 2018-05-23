@@ -1,5 +1,6 @@
 package com.bot.facebook.template;
 
+import com.bot.facebook.util.Utf8ResourceBundleControl;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -11,7 +12,7 @@ import java.util.ResourceBundle;
  */
 public class MessageTemplates {
     private final String properties;
-
+    private final ResourceBundle.Control utf8Support = new Utf8ResourceBundleControl();
 
     @Inject
     public MessageTemplates(@Named("i18n") String properties) {
@@ -24,6 +25,33 @@ public class MessageTemplates {
     }
 
     private ResourceBundle getBundle(Locale locale) {
-        return ResourceBundle.getBundle(properties, locale);
+        return ResourceBundle.getBundle(properties, locale, utf8Support);
+    }
+
+    public MenuTemplate getBasicMenuTemplate(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return new MenuTemplate(resourceBundle.getString(TemplateNames.MENU_TITLE))
+                .setViewUOButton(resourceBundle.getString(TemplateNames.MENU_BUTTON_VIEW_UO))
+                .setChangeLocaleButton(resourceBundle.getString(TemplateNames.MENU_BUTTON_CHANGE_LANG));
+    }
+
+    public String getWrongCommandTemplate(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(TemplateNames.WRONG_COMMAND);
+    }
+
+    public String getUnsubscribeButton(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(TemplateNames.UNSUBSCRIBE);
+    }
+
+    public String getSubscribeButton(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(TemplateNames.SUBSCRIBE);
+    }
+
+    public String getUOId(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(TemplateNames.VIEW_UO_ID);
     }
 }

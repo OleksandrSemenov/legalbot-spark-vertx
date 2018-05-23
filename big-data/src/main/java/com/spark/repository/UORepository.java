@@ -11,7 +11,7 @@ import org.redisson.api.RedissonClient;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spark.util.RedisKeys.UO_TEMPLATE;
+import static com.core.util.RedisKeys.UO_TEMPLATE;
 
 /**
  * @author Taras Zubrei

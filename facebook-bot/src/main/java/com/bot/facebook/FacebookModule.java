@@ -4,6 +4,7 @@ import com.bot.facebook.service.FacebookService;
 import com.bot.facebook.service.impl.FacebookServiceImpl;
 import com.bot.facebook.template.MessageTemplates;
 import com.bot.facebook.verticle.FacebookVerticle;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import com.restfb.DefaultFacebookClient;
@@ -22,6 +23,7 @@ public class FacebookModule extends AbstractModule {
         bind(FacebookClient.class).toInstance(pageClient);
         bind(FacebookService.class).to(FacebookServiceImpl.class);
         bind(FacebookVerticle.class);
+        bind(ObjectMapper.class).toInstance(new ObjectMapper());
         bindConstant().annotatedWith(Names.named("i18n")).to("i18n");
         bind(MessageTemplates.class);
     }

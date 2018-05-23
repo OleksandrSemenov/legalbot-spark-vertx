@@ -1,11 +1,11 @@
 package com.spark.verticles;
 
 import com.core.models.User;
+import com.core.service.UFOPService;
 import com.core.service.UserService;
 import com.core.util.Resource;
 import com.google.inject.Inject;
 import com.spark.service.SparkService;
-import com.spark.service.UFOPService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerOptions;

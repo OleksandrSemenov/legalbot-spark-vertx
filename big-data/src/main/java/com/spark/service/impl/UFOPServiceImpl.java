@@ -3,12 +3,14 @@ package com.spark.service.impl;
 import com.core.models.FOP;
 import com.core.models.UO;
 import com.core.models.UOHistory;
+import com.core.service.UFOPService;
 import com.google.inject.Inject;
 import com.spark.repository.FOPRepository;
 import com.spark.repository.UORepository;
-import com.spark.service.UFOPService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Taras Zubrei
@@ -25,7 +27,7 @@ public class UFOPServiceImpl implements UFOPService {
 
     @Override
     public List<UO> findUO(String id) {
-        return uoRepository.findOne(id).getData();
+        return Optional.ofNullable(uoRepository.findOne(id)).map(UOHistory::getData).orElseGet(ArrayList::new);
     }
 
     @Override

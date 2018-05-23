@@ -1,10 +1,20 @@
 package com.bot.facebook.service;
 
-import com.restfb.types.Message;
+import com.core.models.User;
+import com.restfb.types.send.Message;
+import com.restfb.types.webhook.messaging.MessagingItem;
 
 /**
  * @author Taras Zubrei
  */
 public interface FacebookService {
     void sendMessage(String userId, Message message);
+
+    void sendBasicMenu(User user);
+
+    void handleMessage(User user, MessagingItem message);
+
+    void unhandledMessage(User user, MessagingItem message);
+
+    void viewUO(User user);
 }

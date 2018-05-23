@@ -1,6 +1,7 @@
 package com.spark.repository;
 
 import com.core.models.User;
+import com.core.util.MessengerType;
 import com.google.inject.Inject;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -25,6 +26,10 @@ public class UserRepository {
 
     public List<User> find(List<String> ids) {
         return db.get(User.class, ids.stream().map(ObjectId::new).collect(Collectors.toList())).asList();
+    }
+
+    public User find(MessengerType type, String id) {
+        return db.find(User.class).field("messengerIds." + type).equal(id).get();
     }
 
     public List<String> getAllIds() {

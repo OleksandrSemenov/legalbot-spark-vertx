@@ -19,7 +19,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static com.spark.util.RedisKeys.UFOP_LAST_UPDATE_DATE;
+import static com.core.util.RedisKeys.UFOP_LAST_UPDATE_DATE;
 
 /**
  * @author Taras Zubrei

@@ -2,6 +2,7 @@ package com.spark.service.impl;
 
 import com.core.models.User;
 import com.core.service.UserService;
+import com.core.util.MessengerType;
 import com.core.util.Resource;
 import com.google.inject.Inject;
 import com.spark.repository.UserRepository;
@@ -9,14 +10,17 @@ import org.redisson.api.RedissonClient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static com.spark.util.RedisKeys.USER_SUBSCRIPTION_TEMPlATE;
+import static com.core.util.RedisKeys.USER_SUBSCRIPTION_TEMPlATE;
 
 /**
  * @author Taras Zubrei
  */
 public class UserServiceImpl implements UserService {
+    private static final Locale DEFAULT_LOCALE = Locale.US;
+
     private final RedissonClient redisson;
     private final UserRepository userRepository;
 
@@ -34,6 +38,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public User find(String id) {
         return userRepository.findOne(id);
+    }
+
+    @Override
+    public User findOrCreate(MessengerType type, String id) {
+        User user = userRepository.find(type, id);
+        if (user == null) {
+            user = new User();
+            user.addMessenger(type, id, DEFAULT_LOCALE);
+            return save(user);
+        }
+        return user;
     }
 
     @Override

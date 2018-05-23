@@ -1,9 +1,21 @@
 package com.bot.facebook.verticle;
 
+import com.bot.facebook.command.Commands;
+import com.bot.facebook.command.impl.ChangeLanguage;
+import com.bot.facebook.command.impl.Subscribe;
+import com.bot.facebook.command.impl.Unsubscribe;
+import com.bot.facebook.service.FacebookService;
+import com.bot.facebook.util.ExceptionUtils;
+import com.core.models.User;
+import com.core.service.UserService;
+import com.core.util.MessengerType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
+import com.google.inject.Inject;
 import com.restfb.DefaultJsonMapper;
 import com.restfb.types.webhook.WebhookObject;
 import com.restfb.types.webhook.messaging.MessagingItem;
+import com.restfb.types.webhook.messaging.PostbackItem;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
@@ -30,7 +42,17 @@ public class FacebookVerticle extends AbstractVerticle {
     private static final int PORT = 7172;
     private final static Logger logger = LoggerFactory.getLogger(FacebookVerticle.class);
 
+    private final UserService userService;
+    private final FacebookService facebookService;
+    private final ObjectMapper objectMapper;
     private final static DefaultJsonMapper jsonMapper = new DefaultJsonMapper();
+
+    @Inject
+    public FacebookVerticle(UserService userService, FacebookService facebookService, ObjectMapper objectMapper) {
+        this.userService = userService;
+        this.facebookService = facebookService;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void start(Future<Void> fut) throws Exception {
@@ -87,14 +109,48 @@ public class FacebookVerticle extends AbstractVerticle {
                 "}");
 
         WebhookObject webhookObject = jsonMapper.toJavaObject(bodyJson, WebhookObject.class);
-        List<MessagingItem> messages = lookupMessageEvent(webhookObject);
-        logger.info("Messages: {}", messages);
+        MessagingItem message = lookupMessageEvent(webhookObject).get(0);
+        final User user = userService.findOrCreate(MessengerType.FACEBOOK, message.getSender().getId());
+        if (message.getItem() instanceof PostbackItem) {
+            final String payload = message.getPostback().getPayload();
+            if (Commands.VIEW_UO.equals(payload)) {
+                facebookService.viewUO(user);
+            } else {
+                final Object command = ExceptionUtils.wrapException(() -> objectMapper.readValue(objectMapper.readTree(payload).get("value").toString(), Class.forName(objectMapper.readTree(payload).get("type").asText())));
+                if (command instanceof ChangeLanguage) {
+                    final ChangeLanguage changeLanguage = (ChangeLanguage) command;
+                    user.getLocales().put(MessengerType.FACEBOOK, changeLanguage.getTo().toLanguageTag());
+                    userService.save(user);
+                    facebookService.sendBasicMenu(user);
+                } else {
+                    facebookService.unhandledMessage(user, message);
+                }
+            }
+        } else if (message.getMessage() != null && message.getMessage().getQuickReply() != null) {
+            final String payload = message.getMessage().getQuickReply().getPayload();
+            final Object command = ExceptionUtils.wrapException(() -> objectMapper.readValue(objectMapper.readTree(payload).get("value").toString(), Class.forName(objectMapper.readTree(payload).get("type").asText())));
+            if (command instanceof Subscribe) {
+                final Subscribe subscribe = (Subscribe) command;
+                userService.subscribe(user.getId(), subscribe.getResource(), subscribe.getId());
+                facebookService.sendBasicMenu(user);
+            } else if (command instanceof Unsubscribe) {
+                final Unsubscribe unsubscribe = (Unsubscribe) command;
+                userService.unsubscribe(user.getId(), unsubscribe.getResource(), unsubscribe.getId());
+                facebookService.sendBasicMenu(user);
+            } else facebookService.unhandledMessage(user, message);
+        } else if (message.getMessage() != null) {
+            final String payload = message.getMessage().getText();
+            if (Commands.MENU.equals(payload)) {
+                facebookService.sendBasicMenu(user);
+            } else {
+                facebookService.handleMessage(user, message);
+            }
+        }
     }
 
     private List<MessagingItem> lookupMessageEvent(final WebhookObject webhookObject) {
         return webhookObject.getEntryList().stream()
                 .flatMap(e -> e.getMessaging().stream())
-                .filter(e -> e.getMessage() != null)
                 .collect(Collectors.toList());
 
     }

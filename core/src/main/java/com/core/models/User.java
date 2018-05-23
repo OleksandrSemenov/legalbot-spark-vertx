@@ -1,6 +1,7 @@
 package com.core.models;
 
 import com.core.util.MessengerType;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
@@ -14,7 +15,7 @@ import java.util.Map;
 @Entity("user")
 public class User {
     @Id
-    private String id;
+    private ObjectId id;
     private Map<MessengerType, String> messengerIds = new HashMap<>();
     private Map<MessengerType, String> locales = new HashMap<>();
 
@@ -22,11 +23,11 @@ public class User {
     }
 
     public String getId() {
-        return id;
+        return id != null ? id.toString() : null;
     }
 
     public void setId(String id) {
-        this.id = id;
+        if (id != null) this.id = new ObjectId(id);
     }
 
     public Map<MessengerType, String> getMessengerIds() {
@@ -52,5 +53,9 @@ public class User {
     public void addMessenger(MessengerType type, String userId, Locale locale) {
         messengerIds.put(type, userId);
         locales.put(type, locale.toLanguageTag());
+    }
+
+    public String getMessengerId(MessengerType type) {
+        return this.messengerIds.get(type);
     }
 }

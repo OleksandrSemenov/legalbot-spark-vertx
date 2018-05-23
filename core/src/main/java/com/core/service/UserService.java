@@ -1,6 +1,7 @@
 package com.core.service;
 
 import com.core.models.User;
+import com.core.util.MessengerType;
 import com.core.util.Resource;
 
 import java.util.List;
@@ -12,6 +13,8 @@ public interface UserService {
     List<String> findAll();
 
     User find(String id);
+
+    User findOrCreate(MessengerType type, String id);
 
     void subscribe(String userId, Resource to, String id);
 
