@@ -1,10 +1,5 @@
 package com.bot.facebook.template;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.text.StrSubstitutor;
-
-import java.util.Locale;
-
 /**
  * @author Taras Zubrei
  */
@@ -30,10 +25,8 @@ public class MenuTemplate {
         return this;
     }
 
-    public String getChangeLocaleButton(Locale to) {
-        return new StrSubstitutor(ImmutableMap.of(
-                "locale", to.getLanguage()
-        )).replace(changeLocaleButton);
+    public String getChangeLocaleButton() {
+        return changeLocaleButton;
     }
 
     public MenuTemplate setChangeLocaleButton(String changeLocaleButton) {

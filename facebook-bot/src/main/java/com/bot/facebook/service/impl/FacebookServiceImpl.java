@@ -65,12 +65,12 @@ public class FacebookServiceImpl implements FacebookService {
     }
 
     public void sendBasicMenu(User user) {
-        final MenuTemplate template = messageTemplates.getBasicMenuTemplate(user.getLocale(FACEBOOK));
+        final Locale language = Stream.of(Locale.US, new Locale("uk", "ua")).filter(l -> !Objects.equals(l, user.getLocale(FACEBOOK))).findAny().get();
+        final MenuTemplate template = messageTemplates.getBasicMenuTemplate(user.getLocale(FACEBOOK), language);
 
         ButtonTemplatePayload payload = new ButtonTemplatePayload(template.getTitle());
         payload.addButton(new PostbackButton(template.getViewUOButton(), Commands.VIEW_UO));
-        final Locale locale = Stream.of(Locale.US, new Locale("uk", "ua")).filter(l -> !Objects.equals(l, user.getLocale(FACEBOOK))).findAny().get();
-        payload.addButton(new PostbackButton(template.getChangeLocaleButton(locale), write(new ChangeLanguage().setTo(locale))));
+        payload.addButton(new PostbackButton(template.getChangeLocaleButton(), write(new ChangeLanguage().setTo(language))));
 
         TemplateAttachment templateAttachment = new TemplateAttachment(payload);
         sendMessage(user.getMessengerId(FACEBOOK), new Message(templateAttachment));

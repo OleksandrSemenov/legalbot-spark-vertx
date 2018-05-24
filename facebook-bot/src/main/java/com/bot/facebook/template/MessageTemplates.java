@@ -1,8 +1,10 @@
 package com.bot.facebook.template;
 
 import com.bot.facebook.util.Utf8ResourceBundleControl;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import org.apache.commons.lang3.text.StrSubstitutor;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -28,11 +30,15 @@ public class MessageTemplates {
         return ResourceBundle.getBundle(properties, locale, utf8Support);
     }
 
-    public MenuTemplate getBasicMenuTemplate(Locale locale) {
+    public MenuTemplate getBasicMenuTemplate(Locale locale, Locale language) {
         final ResourceBundle resourceBundle = getBundle(locale);
         return new MenuTemplate(resourceBundle.getString(TemplateNames.MENU_TITLE))
                 .setViewUOButton(resourceBundle.getString(TemplateNames.MENU_BUTTON_VIEW_UO))
-                .setChangeLocaleButton(resourceBundle.getString(TemplateNames.MENU_BUTTON_CHANGE_LANG));
+                .setChangeLocaleButton(
+                        new StrSubstitutor(ImmutableMap.of(
+                                "locale", language.getDisplayLanguage(language)
+                        )).replace(getBundle(language).getString(TemplateNames.MENU_BUTTON_CHANGE_LANG))
+                );
     }
 
     public String getWrongCommandTemplate(Locale locale) {
