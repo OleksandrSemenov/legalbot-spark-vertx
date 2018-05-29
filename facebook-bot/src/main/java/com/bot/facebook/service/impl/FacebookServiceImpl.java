@@ -121,7 +121,9 @@ public class FacebookServiceImpl implements FacebookService {
     @Override
     public void showSubscriptions(User user, Resource to, List<String> subscriptions) {
         if (subscriptions.isEmpty()) {
-            sendMessage(user.getMessengerId(FACEBOOK), new Message(messageTemplates.getEmptySubscriptions(to, user.getLocale(FACEBOOK))));
+            final Message response = new Message(messageTemplates.getEmptySubscriptions(to, user.getLocale(FACEBOOK)));
+            response.addQuickReply(new QuickReply(messageTemplates.getBasicMenuTemplate(user.getLocale(FACEBOOK), Locale.US).getTitle(), Commands.MENU.toString()));
+            sendMessage(user.getMessengerId(FACEBOOK), response);
             return;
         }
         sendMessage(user.getMessengerId(FACEBOOK), new Message(messageTemplates.getSubscriptions(to, user.getLocale(FACEBOOK))));
