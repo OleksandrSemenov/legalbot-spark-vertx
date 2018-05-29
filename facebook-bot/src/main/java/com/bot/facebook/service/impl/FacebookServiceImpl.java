@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.core.util.MessengerType.FACEBOOK;
@@ -94,10 +95,11 @@ public class FacebookServiceImpl implements FacebookService {
         final List<UO> data = ufopService.findUO(viewUO.getId());
         final Message response = new Message(ExceptionUtils.wrapException(() -> new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(data)));
         if (!data.isEmpty()) {
+            final Object nextCommand = viewUO.hasNext() ? new ViewUO(viewUO.getNext()) : Commands.MENU;
             if (userService.isSubscribed(user.getId(), Resource.UO, viewUO.getId()))
-                response.addQuickReply(new QuickReply(messageTemplates.getUnsubscribeButton(user.getLocale(FACEBOOK)), write(new Unsubscribe(Resource.UO, viewUO.getId()))));
+                response.addQuickReply(new QuickReply(messageTemplates.getUnsubscribeButton(user.getLocale(FACEBOOK)), write(new Unsubscribe(Resource.UO, viewUO.getId()), nextCommand)));
             else
-                response.addQuickReply(new QuickReply(messageTemplates.getSubscribeButton(user.getLocale(FACEBOOK)), write(new Subscribe(Resource.UO, viewUO.getId()))));
+                response.addQuickReply(new QuickReply(messageTemplates.getSubscribeButton(user.getLocale(FACEBOOK)), write(new Subscribe(Resource.UO, viewUO.getId()), nextCommand)));
             if (viewUO.hasNext())
                 response.addQuickReply(new QuickReply(messageTemplates.getNextButton(user.getLocale(FACEBOOK)), write(new ViewUO(viewUO.getNext()))));
         }
@@ -134,7 +136,12 @@ public class FacebookServiceImpl implements FacebookService {
         sendBasicMenu(user);
     }
 
-    private String write(Command command) {
-        return ExceptionUtils.wrapException(() -> mapper.writeValueAsString(new CommandWrapper<>(command)));
+    private String write(Object... commands) {
+        final List<Object> payload = Arrays.stream(commands).map(command -> {
+            if (command instanceof Command)
+                return new CommandWrapper<>((Command) command);
+            return command;
+        }).collect(Collectors.toList());
+        return ExceptionUtils.wrapException(() -> mapper.writeValueAsString(payload));
     }
 }

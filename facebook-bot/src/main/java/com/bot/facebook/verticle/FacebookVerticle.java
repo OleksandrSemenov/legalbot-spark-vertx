@@ -8,6 +8,7 @@ import com.core.models.User;
 import com.core.service.UserService;
 import com.core.util.MessengerType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.restfb.DefaultJsonMapper;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -125,11 +127,26 @@ public class FacebookVerticle extends AbstractVerticle {
         if (Arrays.stream(Commands.values()).map(Enum::name).anyMatch(payload.toUpperCase()::equals)) {
             fsmService.fire(user, Commands.valueOf(payload.toUpperCase()));
         } else {
-            if (payload.startsWith("{")) {
-                final Object command = ExceptionUtils.wrapException(() -> objectMapper.readValue(objectMapper.readTree(payload).get("value").toString(), Class.forName(objectMapper.readTree(payload).get("type").asText())));
-                if (command instanceof Command) {
-                    fsmService.fire(user, (Command) command);
-                } else fsmService.fire(user, message);
+            if (payload.startsWith("[")) {
+                ExceptionUtils.wrapException(() -> Lists.newArrayList(objectMapper.readTree(payload)))
+                        .stream()
+                        .map(node -> {
+                            if (node.toString().startsWith("{"))
+                                return ExceptionUtils.wrapException(() -> objectMapper.readValue(
+                                        objectMapper.readTree(node.toString()).get("value").toString(),
+                                        Class.forName(objectMapper.readTree(node.toString()).get("type").asText())));
+                            else if (Arrays.stream(Commands.values()).map(Enum::name).anyMatch(node.asText().toUpperCase()::equals)) {
+                                return Commands.valueOf(node.asText().toUpperCase());
+                            } else return null;
+                        })
+                        .filter(Objects::nonNull)
+                        .forEach(command -> {
+                            if (command instanceof Command) {
+                                fsmService.fire(user, (Command) command);
+                            } else if (Arrays.stream(Commands.values()).map(Enum::name).anyMatch(command.toString().toUpperCase()::equals)) {
+                                fsmService.fire(user, Commands.valueOf(command.toString().toUpperCase()));
+                            } else fsmService.fire(user, message);
+                        });
             } else fsmService.fire(user, message);
         }
     }
