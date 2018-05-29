@@ -1,6 +1,7 @@
 package com.bot.facebook.template;
 
 import com.bot.facebook.util.Utf8ResourceBundleControl;
+import com.core.util.Resource;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -33,7 +34,8 @@ public class MessageTemplates {
     public MenuTemplate getBasicMenuTemplate(Locale locale, Locale language) {
         final ResourceBundle resourceBundle = getBundle(locale);
         return new MenuTemplate(resourceBundle.getString(TemplateNames.MENU_TITLE))
-                .setViewUOButton(resourceBundle.getString(TemplateNames.MENU_BUTTON_VIEW_UO))
+                .setViewButton(resourceBundle.getString(TemplateNames.MENU_BUTTON_VIEW))
+                .setShowSubscriptions(resourceBundle.getString(TemplateNames.MENU_BUTTON_SUBSCRIPTIONS))
                 .setChangeLocaleButton(
                         new StrSubstitutor(ImmutableMap.of(
                                 "locale", language.getDisplayLanguage(language)
@@ -59,5 +61,30 @@ public class MessageTemplates {
     public String getUOId(Locale locale) {
         final ResourceBundle resourceBundle = getBundle(locale);
         return resourceBundle.getString(TemplateNames.VIEW_UO_ID);
+    }
+
+    public String getResource(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(TemplateNames.GET_RESOURCE);
+    }
+
+    public String getEmptySubscriptions(Resource to, Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(String.format(TemplateNames.EMPTY_SUBSCRIPTIONS_TEMPLATE, to.getName()));
+    }
+
+    public String getSubscriptions(Resource to, Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(String.format(TemplateNames.SHOW_SUBSCRIPTIONS_TEMPLATE, to.getName()));
+    }
+
+    public String getResourceName(Resource resource, Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(String.format(TemplateNames.RESOURCE_NAME_TEMPLATE, resource.getName()));
+    }
+
+    public String getNextButton(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(TemplateNames.NEXT);
     }
 }

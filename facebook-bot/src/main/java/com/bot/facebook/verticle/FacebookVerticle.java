@@ -125,9 +125,11 @@ public class FacebookVerticle extends AbstractVerticle {
         if (Arrays.stream(Commands.values()).map(Enum::name).anyMatch(payload.toUpperCase()::equals)) {
             fsmService.fire(user, Commands.valueOf(payload.toUpperCase()));
         } else {
-            final Object command = ExceptionUtils.wrapException(() -> objectMapper.readValue(objectMapper.readTree(payload).get("value").toString(), Class.forName(objectMapper.readTree(payload).get("type").asText())));
-            if (command instanceof Command) {
-                fsmService.fire(user, (Command) command);
+            if (payload.startsWith("{")) {
+                final Object command = ExceptionUtils.wrapException(() -> objectMapper.readValue(objectMapper.readTree(payload).get("value").toString(), Class.forName(objectMapper.readTree(payload).get("type").asText())));
+                if (command instanceof Command) {
+                    fsmService.fire(user, (Command) command);
+                } else fsmService.fire(user, message);
             } else fsmService.fire(user, message);
         }
     }

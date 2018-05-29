@@ -2,9 +2,7 @@ package com.spark.util;
 
 import com.bot.facebook.FacebookModule;
 import com.bot.facebook.command.Commands;
-import com.bot.facebook.command.impl.ChangeLanguage;
-import com.bot.facebook.command.impl.Subscribe;
-import com.bot.facebook.command.impl.Unsubscribe;
+import com.bot.facebook.command.impl.*;
 import com.bot.facebook.fsm.FSMService;
 import com.core.models.User;
 import com.core.service.UserService;
@@ -21,6 +19,7 @@ import com.spark.service.SparkService;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -40,29 +39,69 @@ public class FacebookFSMTest {
         sparkService.parseUOXml("src/main/resources/uo.xml", true);
 
         User user = new User();
-        user.addMessenger(MessengerType.FACEBOOK, "social id", Locale.US);
+        user.addMessenger(MessengerType.FACEBOOK, "2257721630906361", Locale.US);
         user = userService.save(user);
         fsmService.fire(user, Commands.MENU);
-        fsmService.fire(user, Commands.VIEW_UO);
+        fsmService.fire(user, Commands.VIEW);
+        fsmService.fire(user, new ViewResource().setTo(Resource.UO));
         fsmService.fire(user, createMessage("9"));
         fsmService.fire(user, new Subscribe(Resource.UO, "9"));
+        fsmService.fire(user, Commands.MENU);
+        fsmService.fire(user, Commands.VIEW);
+        fsmService.fire(user, new ViewResource().setTo(Resource.UO));
+        fsmService.fire(user, createMessage("23"));
+        fsmService.fire(user, new Subscribe(Resource.UO, "23"));
+        fsmService.fire(user, Commands.MENU);
+        fsmService.fire(user, Commands.VIEW);
+        fsmService.fire(user, new ViewResource().setTo(Resource.UO));
+        fsmService.fire(user, createMessage("15776"));
+        fsmService.fire(user, new Subscribe(Resource.UO, "15776"));
 
         sparkService.parseUOXml("src/main/resources/uo_update.xml");
         Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS); //sleep for async event bus message handling
 
         fsmService.fire(user, Commands.MENU);
-        fsmService.fire(user, Commands.VIEW_UO);
+        fsmService.fire(user, Commands.VIEW);
         fsmService.fire(user, Commands.MENU);
 
-        fsmService.fire(user, Commands.VIEW_UO);
+        fsmService.fire(user, Commands.MENU);
+        fsmService.fire(user, Commands.VIEW);
+        fsmService.fire(user, new ViewResource().setTo(Resource.UO));
+        fsmService.fire(user, Commands.MENU);
+
+        fsmService.fire(user, Commands.SUBSCRIPTIONS);
+        fsmService.fire(user, new ShowSubscriptions().setTo(Resource.UO));
+        fsmService.fire(user, new ViewUO(Arrays.asList("23", "15776")));
+        fsmService.fire(user, new ViewUO(Arrays.asList("15776")));
+        fsmService.fire(user, Commands.MENU);
+
+        fsmService.fire(user, Commands.SUBSCRIPTIONS);
+        fsmService.fire(user, Commands.MENU);
+
+        fsmService.fire(user, Commands.SUBSCRIPTIONS);
+        fsmService.fire(user, new ShowSubscriptions().setTo(Resource.UO));
+        fsmService.fire(user, new ViewUO(Arrays.asList("23", "15776")));
+        fsmService.fire(user, new Unsubscribe(Resource.UO, "23"));
+        fsmService.fire(user, new ViewUO(Arrays.asList("15776")));
+        fsmService.fire(user, new Unsubscribe(Resource.UO, "15776"));
+        fsmService.fire(user, Commands.MENU);
+
+        fsmService.fire(user, Commands.VIEW);
+        fsmService.fire(user, new ViewResource().setTo(Resource.UO));
         fsmService.fire(user, createMessage("9"));
         fsmService.fire(user, new Unsubscribe(Resource.UO, "9"));
 
-        fsmService.fire(user, Commands.VIEW_UO);
+        fsmService.fire(user, Commands.MENU);
+        fsmService.fire(user, Commands.VIEW);
+        fsmService.fire(user, new ViewResource().setTo(Resource.UO));
         fsmService.fire(user, createMessage("89798798456"));
         fsmService.fire(user, Commands.MENU);
 
         fsmService.fire(user, new ChangeLanguage().setTo(new Locale("uk", "ua")));
+
+        fsmService.fire(user, Commands.SUBSCRIPTIONS);
+        fsmService.fire(user, new ShowSubscriptions().setTo(Resource.UO));
+        fsmService.fire(user, Commands.MENU);
 
         userService.delete(user.getId());
     }

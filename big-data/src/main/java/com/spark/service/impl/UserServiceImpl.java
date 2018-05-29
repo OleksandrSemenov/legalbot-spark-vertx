@@ -8,9 +8,8 @@ import com.google.inject.Inject;
 import com.spark.repository.UserRepository;
 import org.redisson.api.RedissonClient;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.core.util.RedisKeys.USER_SUBSCRIPTION_TEMPlATE;
@@ -62,6 +61,13 @@ public class UserServiceImpl implements UserService {
                 .filter(key -> redisson.getSet(String.format(USER_SUBSCRIPTION_TEMPlATE, key, to.getName())).contains(id))
                 .collect(Collectors.toList());
         return userRepository.find(ids);
+    }
+
+    @Override
+    public Map<Resource, List<String>> findSubscriptions(String id) {
+        return Arrays.stream(Resource.values())
+                .collect(Collectors.toMap(Function.identity(),
+                        to -> new ArrayList<>(redisson.<String>getSet(String.format(USER_SUBSCRIPTION_TEMPlATE, id, to.getName())).readAll())));
     }
 
     @Override

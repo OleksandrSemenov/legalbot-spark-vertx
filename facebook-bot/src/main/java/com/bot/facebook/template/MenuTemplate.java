@@ -5,7 +5,8 @@ package com.bot.facebook.template;
  */
 public class MenuTemplate {
     private final String title;
-    private String viewUOButton;
+    private String viewButton;
+    private String showSubscriptions;
     private String changeLocaleButton;
 
     public MenuTemplate(String title) {
@@ -16,12 +17,21 @@ public class MenuTemplate {
         return title;
     }
 
-    public String getViewUOButton() {
-        return viewUOButton;
+    public String getViewButton() {
+        return viewButton;
     }
 
-    public MenuTemplate setViewUOButton(String viewUOButton) {
-        this.viewUOButton = viewUOButton;
+    public MenuTemplate setViewButton(String viewButton) {
+        this.viewButton = viewButton;
+        return this;
+    }
+
+    public String getShowSubscriptions() {
+        return showSubscriptions;
+    }
+
+    public MenuTemplate setShowSubscriptions(String showSubscriptions) {
+        this.showSubscriptions = showSubscriptions;
         return this;
     }
 
