@@ -103,6 +103,7 @@ public class FacebookServiceImpl implements FacebookService {
             if (viewUO.hasNext())
                 response.addQuickReply(new QuickReply(messageTemplates.getNextButton(user.getLocale(FACEBOOK)), write(new ViewUO(viewUO.getNext()))));
         }
+        response.addQuickReply(new QuickReply(messageTemplates.getBasicMenuTemplate(user.getLocale(FACEBOOK), Locale.US).getTitle(), Commands.MENU.toString()));
         sendMessage(user.getMessengerId(FACEBOOK), response);
     }
 
