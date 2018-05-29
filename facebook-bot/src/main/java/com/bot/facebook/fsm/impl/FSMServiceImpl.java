@@ -23,10 +23,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.core.util.RedisKeys.FACEBOOK_STATE;
 
@@ -103,8 +105,10 @@ public class FSMServiceImpl implements FSMService {
     @Override
     public void fire(User user, MessagingItem message) {
         fireCommand(user, machine -> {
-            if (machine.getState() == State.GET_UO_ID && StringUtils.isNotBlank(message.getMessage().getText()) && message.getMessage().getText().matches("\\d+")) {
-                machine.fire(new TriggerWithParameters2<>(ViewUO.class.getName(), ViewUO.class, User.class), new ViewUO(message.getMessage().getText()), user);
+            final String text = message.getMessage().getText();
+            if (machine.getState() == State.GET_UO_ID && StringUtils.isNotBlank(text) && text.matches("[\\d, ]+")) {
+                final List<String> ids = Arrays.stream(text.split(",")).map(String::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+                machine.fire(new TriggerWithParameters2<>(ViewUO.class.getName(), ViewUO.class, User.class), new ViewUO(ids), user);
             } else facebookService.unhandledMessage(user, message);
         });
     }
