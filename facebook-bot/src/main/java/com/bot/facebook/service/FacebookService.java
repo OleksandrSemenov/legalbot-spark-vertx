@@ -12,9 +12,9 @@ public interface FacebookService {
 
     void sendBasicMenu(User user);
 
-    void handleMessage(User user, MessagingItem message);
-
     void unhandledMessage(User user, MessagingItem message);
 
     void viewUO(User user);
+
+    void showUO(User user, String id);
 }

@@ -1,9 +1,5 @@
 apply plugin: 'java'
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compile project(':core')
     compile libs.vertx.core
@@ -20,5 +16,6 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.dataformat'
         exclude group: 'org.slf4j'
     }
+    implementation 'com.github.oxo42:stateless4j:master-SNAPSHOT'
     testCompile libs.test.junit
 }

@@ -14,7 +14,6 @@ import com.core.models.UO;
 import com.core.models.User;
 import com.core.service.UFOPService;
 import com.core.service.UserService;
-import com.core.util.RedisKeys;
 import com.core.util.Resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
@@ -22,7 +21,6 @@ import com.restfb.FacebookClient;
 import com.restfb.Parameter;
 import com.restfb.types.send.*;
 import com.restfb.types.webhook.messaging.MessagingItem;
-import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,16 +39,14 @@ public class FacebookServiceImpl implements FacebookService {
 
     private final FacebookClient facebookClient;
     private final UserService userService;
-    private final RedissonClient redisson;
     private final UFOPService ufopService;
     private final MessageTemplates messageTemplates;
     private final ObjectMapper mapper;
 
     @Inject
-    public FacebookServiceImpl(FacebookClient facebookClient, UserService userService, RedissonClient redisson, UFOPService ufopService, MessageTemplates messageTemplates, ObjectMapper mapper) {
+    public FacebookServiceImpl(FacebookClient facebookClient, UserService userService, UFOPService ufopService, MessageTemplates messageTemplates, ObjectMapper mapper) {
         this.facebookClient = facebookClient;
         this.userService = userService;
-        this.redisson = redisson;
         this.ufopService = ufopService;
         this.messageTemplates = messageTemplates;
         this.mapper = mapper;
@@ -69,7 +65,7 @@ public class FacebookServiceImpl implements FacebookService {
         final MenuTemplate template = messageTemplates.getBasicMenuTemplate(user.getLocale(FACEBOOK), language);
 
         ButtonTemplatePayload payload = new ButtonTemplatePayload(template.getTitle());
-        payload.addButton(new PostbackButton(template.getViewUOButton(), Commands.VIEW_UO));
+        payload.addButton(new PostbackButton(template.getViewUOButton(), Commands.VIEW_UO.toString()));
         payload.addButton(new PostbackButton(template.getChangeLocaleButton(), write(new ChangeLanguage().setTo(language))));
 
         TemplateAttachment templateAttachment = new TemplateAttachment(payload);
@@ -77,27 +73,21 @@ public class FacebookServiceImpl implements FacebookService {
     }
 
     @Override
-    public void handleMessage(User user, MessagingItem message) {
-        final String previous = redisson.<String>getBucket(String.format(RedisKeys.FACEBOOK_STATE, user.getId())).get();
-        if (Objects.equals(previous, Commands.VIEW_UO)) {
-            final String id = message.getMessage().getText();
-            final List<UO> data = ufopService.findUO(id);
-            final Message response = new Message(ExceptionUtils.wrapException(() -> new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(data)));
-            if (!data.isEmpty()) {
-                if (userService.isSubscribed(user.getId(), Resource.UO, id))
-                    response.addQuickReply(new QuickReply(messageTemplates.getUnsubscribeButton(user.getLocale(FACEBOOK)), write(new Unsubscribe(Resource.UO, id))));
-                else
-                    response.addQuickReply(new QuickReply(messageTemplates.getSubscribeButton(user.getLocale(FACEBOOK)), write(new Subscribe(Resource.UO, id))));
-            }
-            sendMessage(user.getMessengerId(FACEBOOK), response);
-            redisson.<String>getBucket(String.format(RedisKeys.FACEBOOK_STATE, user.getId())).delete();
-        } else unhandledMessage(user, message);
+    public void viewUO(User user) {
+        sendMessage(user.getMessengerId(FACEBOOK), new Message(messageTemplates.getUOId(user.getLocale(FACEBOOK))));
     }
 
     @Override
-    public void viewUO(User user) {
-        redisson.getBucket(String.format(RedisKeys.FACEBOOK_STATE, user.getId())).set(Commands.VIEW_UO);
-        sendMessage(user.getMessengerId(FACEBOOK), new Message(messageTemplates.getUOId(user.getLocale(FACEBOOK))));
+    public void showUO(User user, String id) {
+        final List<UO> data = ufopService.findUO(id);
+        final Message response = new Message(ExceptionUtils.wrapException(() -> new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(data)));
+        if (!data.isEmpty()) {
+            if (userService.isSubscribed(user.getId(), Resource.UO, id))
+                response.addQuickReply(new QuickReply(messageTemplates.getUnsubscribeButton(user.getLocale(FACEBOOK)), write(new Unsubscribe(Resource.UO, id))));
+            else
+                response.addQuickReply(new QuickReply(messageTemplates.getSubscribeButton(user.getLocale(FACEBOOK)), write(new Subscribe(Resource.UO, id))));
+        }
+        sendMessage(user.getMessengerId(FACEBOOK), response);
     }
 
     @Override

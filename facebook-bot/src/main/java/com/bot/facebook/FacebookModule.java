@@ -1,5 +1,7 @@
 package com.bot.facebook;
 
+import com.bot.facebook.fsm.FSMService;
+import com.bot.facebook.fsm.impl.FSMServiceImpl;
 import com.bot.facebook.service.FacebookService;
 import com.bot.facebook.service.impl.FacebookServiceImpl;
 import com.bot.facebook.template.MessageTemplates;
@@ -26,5 +28,6 @@ public class FacebookModule extends AbstractModule {
         bind(ObjectMapper.class).toInstance(new ObjectMapper());
         bindConstant().annotatedWith(Names.named("i18n")).to("i18n");
         bind(MessageTemplates.class);
+        bind(FSMService.class).to(FSMServiceImpl.class);
     }
 }
