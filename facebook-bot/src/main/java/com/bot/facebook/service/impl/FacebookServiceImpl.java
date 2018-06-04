@@ -147,7 +147,6 @@ public class FacebookServiceImpl implements FacebookService {
     public void unhandledMessage(User user, MessagingItem message) {
         logger.warn("Unhandled message from user: {}. Message: {}", user.getId(), message);
         sendMessage(user.getMessengerId(FACEBOOK), new Message(messageTemplates.getWrongCommandTemplate(user.getLocale(FACEBOOK))));
-        sendBasicMenu(user);
     }
 
     private String write(Object... commands) {

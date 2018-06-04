@@ -22,6 +22,8 @@ import com.restfb.types.webhook.messaging.MessagingItem;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +38,7 @@ import static com.core.util.RedisKeys.FACEBOOK_STATE;
  * @author Taras Zubrei
  */
 public class FSMServiceImpl implements FSMService {
+    private final Logger logger = LoggerFactory.getLogger(FSMServiceImpl.class);
     private final FacebookService facebookService;
     private final UserService userService;
     private final RedissonClient redisson;
@@ -109,15 +112,23 @@ public class FSMServiceImpl implements FSMService {
             if (machine.getState() == State.GET_UO_ID && StringUtils.isNotBlank(text) && text.matches("[\\d, ]+")) {
                 final List<String> ids = Arrays.stream(text.split(",")).map(String::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
                 machine.fire(new TriggerWithParameters2<>(ViewUO.class.getName(), ViewUO.class, User.class), new ViewUO(ids), user);
-            } else facebookService.unhandledMessage(user, message);
+            } else {
+                facebookService.unhandledMessage(user, message);
+                throw new IllegalStateException("Unhandled message");
+            }
         });
     }
 
     private void fireCommand(User user, Consumer<StateMachine<State, String>> fire) {
         final RBucket<String> stateBucket = redisson.getBucket(String.format(FACEBOOK_STATE, user.getId()));
         final StateMachine<State, String> machine = new StateMachine<>(Optional.ofNullable(stateBucket.get()).map(State::valueOf).orElse(State.DEFAULT), config);
-        fire.accept(machine);
+        try {
+            fire.accept(machine);
+        } catch (Throwable t) {
+            machine.fire(new TriggerWithParameters1<>(Commands.MENU.toString(), User.class), user);
+        }
         stateBucket.set(machine.getState().name());
+        logger.info("Change state to: {}", machine.getState());
     }
 
     private static <T extends Command> TriggerWithParameters2<T, User, String> inCaseOf(Class<T> command) {
