@@ -7,7 +7,9 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -15,6 +17,7 @@ import java.util.ResourceBundle;
  */
 public class MessageTemplates {
     private final String properties;
+    private final Map<Locale, ResourceBundle> bundles = new HashMap<>();
     private final ResourceBundle.Control utf8Support = new Utf8ResourceBundleControl();
 
     @Inject
@@ -27,8 +30,13 @@ public class MessageTemplates {
         return resourceBundle.getString(TemplateNames.UO_UPDATE);
     }
 
+    public String getUOUpdateActualMessage(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(TemplateNames.UO_UPDATE_ACTUAL);
+    }
+
     private ResourceBundle getBundle(Locale locale) {
-        return ResourceBundle.getBundle(properties, locale, utf8Support);
+        return bundles.computeIfAbsent(locale, __ -> ResourceBundle.getBundle(properties, locale, utf8Support));
     }
 
     public MenuTemplate getBasicMenuTemplate(Locale locale, Locale language) {
@@ -86,5 +94,20 @@ public class MessageTemplates {
     public String getNextButton(Locale locale) {
         final ResourceBundle resourceBundle = getBundle(locale);
         return resourceBundle.getString(TemplateNames.NEXT);
+    }
+
+    public UOTemplate getUOTemplate(Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return new UOTemplate(
+                resourceBundle.getString(TemplateNames.UO_ID),
+                resourceBundle.getString(TemplateNames.UO_NAME),
+                resourceBundle.getString(TemplateNames.UO_SHORT_NAME),
+                resourceBundle.getString(TemplateNames.UO_ADDRESS),
+                resourceBundle.getString(TemplateNames.UO_BOSS),
+                resourceBundle.getString(TemplateNames.UO_KVED),
+                resourceBundle.getString(TemplateNames.UO_STAN),
+                resourceBundle.getString(TemplateNames.UO_FOUNDER),
+                resourceBundle.getString(TemplateNames.UO_FOUNDERS)
+        );
     }
 }

@@ -7,6 +7,7 @@ import com.bot.facebook.command.impl.*;
 import com.bot.facebook.service.FacebookService;
 import com.bot.facebook.template.MenuTemplate;
 import com.bot.facebook.template.MessageTemplates;
+import com.bot.facebook.template.UOTemplate;
 import com.bot.facebook.util.ExceptionUtils;
 import com.core.models.UO;
 import com.core.models.User;
@@ -14,12 +15,14 @@ import com.core.service.UFOPService;
 import com.core.service.UserService;
 import com.core.util.Resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.inject.Inject;
 import com.restfb.FacebookClient;
 import com.restfb.Parameter;
 import com.restfb.types.send.*;
 import com.restfb.types.webhook.messaging.MessagingItem;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +58,8 @@ public class FacebookServiceImpl implements FacebookService {
 
     @Override
     public void sendMessage(String userId, Message message) {
+        if (StringUtils.isNotBlank(message.getText()))
+            logger.info("Sending message (size: {}): {}", message.getText().length(), StringUtils.normalizeSpace(message.getText()));
         facebookClient.publish("me/messages", SendResponse.class,
                 Parameter.with("recipient", new IdMessageRecipient(userId)),
                 Parameter.with("message", message)
@@ -93,7 +98,10 @@ public class FacebookServiceImpl implements FacebookService {
     @Override
     public void showUO(ViewUO viewUO, User user) {
         final List<UO> data = ufopService.findUO(viewUO.getId());
-        final Message response = new Message(ExceptionUtils.wrapException(() -> new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(data)));
+        final UOTemplate template = messageTemplates.getUOTemplate(user.getLocale(FACEBOOK));
+        data.subList(0, data.size() - 1).stream().map(template::replace).map(Message::new)
+                .forEach(response -> sendMessage(user.getMessengerId(FACEBOOK), response));
+        final Message response = new Message(template.replace(Iterables.getLast(data)));
         if (!data.isEmpty()) {
             final Object nextCommand = viewUO.hasNext() ? new ViewUO(viewUO.getNext()) : Commands.MENU;
             if (userService.isSubscribed(user.getId(), Resource.UO, viewUO.getId()))
