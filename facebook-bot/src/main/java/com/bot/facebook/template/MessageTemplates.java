@@ -110,4 +110,9 @@ public class MessageTemplates {
                 resourceBundle.getString(TemplateNames.UO_FOUNDERS)
         );
     }
+
+    public String getEmptyResource(Resource resource, Locale locale) {
+        final ResourceBundle resourceBundle = getBundle(locale);
+        return resourceBundle.getString(String.format(TemplateNames.EMPTY_RESOURCE_TEMPLATE, resource.getName()));
+    }
 }

@@ -98,11 +98,14 @@ public class FacebookServiceImpl implements FacebookService {
     @Override
     public void showUO(ViewUO viewUO, User user) {
         final List<UO> data = ufopService.findUO(viewUO.getId());
-        final UOTemplate template = messageTemplates.getUOTemplate(user.getLocale(FACEBOOK));
-        data.subList(0, data.size() - 1).stream().map(template::replace).map(Message::new)
-                .forEach(response -> sendMessage(user.getMessengerId(FACEBOOK), response));
-        final Message response = new Message(template.replace(Iterables.getLast(data)));
-        if (!data.isEmpty()) {
+        Message response;
+        if (data.isEmpty()) {
+            response = new Message(messageTemplates.getEmptyResource(Resource.UO, user.getLocale(FACEBOOK)));
+        } else {
+            final UOTemplate template = messageTemplates.getUOTemplate(user.getLocale(FACEBOOK));
+            data.subList(0, data.size() - 1).stream().map(template::replace).map(Message::new)
+                    .forEach(message -> sendMessage(user.getMessengerId(FACEBOOK), message));
+            response = new Message(template.replace(Iterables.getLast(data)));
             final Object nextCommand = viewUO.hasNext() ? new ViewUO(viewUO.getNext()) : Commands.MENU;
             if (userService.isSubscribed(user.getId(), Resource.UO, viewUO.getId()))
                 response.addQuickReply(new QuickReply(messageTemplates.getUnsubscribeButton(user.getLocale(FACEBOOK)), write(new Unsubscribe(Resource.UO, viewUO.getId()), nextCommand)));

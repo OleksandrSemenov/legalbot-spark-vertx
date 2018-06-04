@@ -17,6 +17,7 @@ public interface TemplateNames {
     String VIEW_UO_ID = "get.id.uo";
     String GET_RESOURCE = "resource.view";
     String RESOURCE_NAME_TEMPLATE = "resource.%s.name";
+    String EMPTY_RESOURCE_TEMPLATE = "resource.%s.empty";
     String SHOW_SUBSCRIPTIONS_TEMPLATE = "subscriptions.%s.view";
     String EMPTY_SUBSCRIPTIONS_TEMPLATE = "subscriptions.%s.empty";
 
