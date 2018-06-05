@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -58,8 +59,22 @@ public class FacebookServiceImpl implements FacebookService {
 
     @Override
     public void sendMessage(String userId, Message message) {
-        if (StringUtils.isNotBlank(message.getText()))
-            logger.info("Sending message (size: {}): {}", message.getText().length(), StringUtils.normalizeSpace(message.getText()));
+        if (StringUtils.isNotBlank(message.getText()) && message.getText().contains("|")) {
+            try {
+                final List<String> messages = Arrays.asList(message.getText().split("\\|"));
+                messages.subList(0, messages.size() - 1).stream().map(Message::new).forEach(m -> send(userId, m));
+                final Field textField = message.getClass().getDeclaredField("text");
+                textField.setAccessible(true);
+                textField.set(message, Iterables.getLast(messages));
+                send(userId, message);
+            } catch (Throwable ex) {
+                logger.error("Failed to send message", ex);
+                throw new IllegalStateException(ex);
+            }
+        } else send(userId, message);
+    }
+
+    private void send(String userId, Message message) {
         facebookClient.publish("me/messages", SendResponse.class,
                 Parameter.with("recipient", new IdMessageRecipient(userId)),
                 Parameter.with("message", message)

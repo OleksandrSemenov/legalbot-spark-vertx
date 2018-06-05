@@ -57,6 +57,12 @@ public class FacebookFSMTest {
         fsmService.fire(user, createMessage("15776"));
         fsmService.fire(user, new Subscribe(Resource.UO, "15776"));
 
+        fsmService.fire(user, Commands.MENU);
+        fsmService.fire(user, Commands.VIEW);
+        fsmService.fire(user, new ViewResource().setTo(Resource.UO));
+        fsmService.fire(user, createMessage("188328"));
+        fsmService.fire(user, Commands.MENU);
+
         sparkService.parseUOXml("src/main/resources/uo_update.xml");
         Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS); //sleep for async event bus message handling
 

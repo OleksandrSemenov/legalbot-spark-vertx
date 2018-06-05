@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -36,24 +37,34 @@ public class UOTemplate {
     }
 
     public String replace(UO uo) {
-        final ArrayList<String> properties = new ArrayList<>();
-        properties.add(new StrSubstitutor(ImmutableMap.of("id", uo.getId())).replace(id));
+        final List<String> properties = new ArrayList<>();
+        add(properties, new StrSubstitutor(ImmutableMap.of("id", uo.getId())).replace(id));
         if (StringUtils.isNotBlank(uo.getName()))
-            properties.add(new StrSubstitutor(ImmutableMap.of("name", uo.getName())).replace(name));
+            add(properties, new StrSubstitutor(ImmutableMap.of("name", uo.getName())).replace(name));
         if (StringUtils.isNotBlank(uo.getShortName()))
-            properties.add(new StrSubstitutor(ImmutableMap.of("shortName", uo.getShortName())).replace(shortName));
+            add(properties, new StrSubstitutor(ImmutableMap.of("shortName", uo.getShortName())).replace(shortName));
         if (StringUtils.isNotBlank(uo.getAddress()))
-            properties.add(new StrSubstitutor(ImmutableMap.of("address", uo.getAddress())).replace(address));
+            add(properties, new StrSubstitutor(ImmutableMap.of("address", uo.getAddress())).replace(address));
         if (StringUtils.isNotBlank(uo.getKved()))
-            properties.add(new StrSubstitutor(ImmutableMap.of("kved", uo.getKved())).replace(kved));
+            add(properties, new StrSubstitutor(ImmutableMap.of("kved", uo.getKved())).replace(kved));
         if (StringUtils.isNotBlank(uo.getBoss()))
-            properties.add(new StrSubstitutor(ImmutableMap.of("boss", uo.getBoss())).replace(boss));
+            add(properties, new StrSubstitutor(ImmutableMap.of("boss", uo.getBoss())).replace(boss));
         if (StringUtils.isNotBlank(uo.getStan()))
-            properties.add(new StrSubstitutor(ImmutableMap.of("stan", uo.getStan())).replace(stan));
+            add(properties, new StrSubstitutor(ImmutableMap.of("stan", uo.getStan())).replace(stan));
         if (uo.getFounders() != null && !uo.getFounders().isEmpty()) {
-            properties.add(founders);
-            properties.add(uo.getFounders().stream().map(f -> new StrSubstitutor(ImmutableMap.of("founder", f)).replace(founder)).collect(Collectors.joining("\n")));
+            add(properties, founders);
+            uo.getFounders().stream().map(f -> new StrSubstitutor(ImmutableMap.of("founder", f)).replace(founder))
+                    .forEach(text -> add(properties, text));
         }
         return properties.stream().collect(Collectors.joining("\n"));
+    }
+
+    private void add(List<String> properties, String line) {
+        int size = properties.stream().mapToInt(String::length).sum() + line.length() + properties.size() * "\n".length();
+        int start = properties.stream().collect(Collectors.joining("\n")).lastIndexOf('|');
+        if (size - start >= 2000)
+            properties.add("|" + line);
+        else
+            properties.add(line);
     }
 }
