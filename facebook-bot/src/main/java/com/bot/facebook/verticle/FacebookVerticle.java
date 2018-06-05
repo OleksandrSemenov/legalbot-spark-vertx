@@ -61,7 +61,7 @@ public class FacebookVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         router.route().handler(BodyHandler.create());
-        router.post("/webhook").handler(this::webhookPost);
+        router.post("/webhook").blockingHandler(this::webhookPost);
         router.get("/webhook").handler(this::webhookGet);
         router.route("/").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
@@ -112,6 +112,7 @@ public class FacebookVerticle extends AbstractVerticle {
 
         WebhookObject webhookObject = jsonMapper.toJavaObject(bodyJson, WebhookObject.class);
         MessagingItem message = lookupMessageEvent(webhookObject).get(0);
+        if (message.getDelivery() != null) return;
         final User user = userService.findOrCreate(MessengerType.FACEBOOK, message.getSender().getId());
         if (message.getItem() instanceof PostbackItem) {
             handleMessage(user, message, message.getPostback().getPayload());
