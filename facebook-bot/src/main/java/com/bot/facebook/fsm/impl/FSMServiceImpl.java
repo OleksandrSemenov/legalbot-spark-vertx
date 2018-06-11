@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.core.util.RedisKeys.FACEBOOK_STATE;
+import static com.core.util.RedisKeys.FACEBOOK_STATE_TEMPLATE;
 
 /**
  * @author Taras Zubrei
@@ -120,7 +120,7 @@ public class FSMServiceImpl implements FSMService {
     }
 
     private void fireCommand(User user, Consumer<StateMachine<State, String>> fire) {
-        final RBucket<String> stateBucket = redisson.getBucket(String.format(FACEBOOK_STATE, user.getId()));
+        final RBucket<String> stateBucket = redisson.getBucket(String.format(FACEBOOK_STATE_TEMPLATE, user.getId()));
         final StateMachine<State, String> machine = new StateMachine<>(Optional.ofNullable(stateBucket.get()).map(State::valueOf).orElse(State.DEFAULT), config);
         try {
             fire.accept(machine);

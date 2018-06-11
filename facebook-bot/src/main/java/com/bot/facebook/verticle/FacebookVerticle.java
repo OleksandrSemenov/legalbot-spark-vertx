@@ -7,6 +7,7 @@ import com.bot.facebook.util.ExceptionUtils;
 import com.core.models.User;
 import com.core.service.UserService;
 import com.core.util.MessengerType;
+import com.core.util.RedisKeys;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
@@ -27,6 +28,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import org.apache.commons.io.IOUtils;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +50,15 @@ public class FacebookVerticle extends AbstractVerticle {
     private final UserService userService;
     private final FSMService fsmService;
     private final ObjectMapper objectMapper;
+    private final RedissonClient redisson;
     private final static DefaultJsonMapper jsonMapper = new DefaultJsonMapper();
 
     @Inject
-    public FacebookVerticle(UserService userService, FSMService fsmService, ObjectMapper objectMapper) {
+    public FacebookVerticle(UserService userService, FSMService fsmService, ObjectMapper objectMapper, RedissonClient redisson) {
         this.userService = userService;
         this.fsmService = fsmService;
         this.objectMapper = objectMapper;
+        this.redisson = redisson;
     }
 
     @Override
@@ -114,6 +119,11 @@ public class FacebookVerticle extends AbstractVerticle {
         MessagingItem message = lookupMessageEvent(webhookObject).get(0);
         if (message.getDelivery() != null) return;
         final User user = userService.findOrCreate(MessengerType.FACEBOOK, message.getSender().getId());
+        final RBucket<String> previousMessage = redisson.getBucket(String.format(RedisKeys.FACEBOOK_PREVIOUS_MESSAGE_TEMPLATE, user.getId()));
+        if (Objects.equals(previousMessage.get(), bodyJson))
+            return;
+        else
+            previousMessage.set(bodyJson);
         if (message.getItem() instanceof PostbackItem) {
             handleMessage(user, message, message.getPostback().getPayload());
         } else if (message.getMessage() != null && message.getMessage().getQuickReply() != null) {
