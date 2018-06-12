@@ -4,6 +4,8 @@ app:
   ports:
     - 7171:7171
     - 7172:7172
+  volumes:
+    - /tmp/legalbot/logs:/tmp/legalbot/logs
   links:
     - master
     - redis
