@@ -3,6 +3,8 @@ package com.bot.facebook.verticle;
 import com.bot.facebook.command.Command;
 import com.bot.facebook.command.Commands;
 import com.bot.facebook.fsm.FSMService;
+import com.bot.facebook.message.MessageStrategy;
+import com.bot.facebook.message.command.CommandParser;
 import com.bot.facebook.util.ExceptionUtils;
 import com.core.models.User;
 import com.core.service.UserService;
@@ -15,7 +17,6 @@ import com.google.inject.Inject;
 import com.restfb.DefaultJsonMapper;
 import com.restfb.types.webhook.WebhookObject;
 import com.restfb.types.webhook.messaging.MessagingItem;
-import com.restfb.types.webhook.messaging.PostbackItem;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
@@ -34,10 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -51,14 +51,18 @@ public class FacebookVerticle extends AbstractVerticle {
     private final FSMService fsmService;
     private final ObjectMapper objectMapper;
     private final RedissonClient redisson;
+    private final Set<CommandParser> commandParsers;
+    private final Set<MessageStrategy> messageHandlers;
     private final static DefaultJsonMapper jsonMapper = new DefaultJsonMapper();
 
     @Inject
-    public FacebookVerticle(UserService userService, FSMService fsmService, ObjectMapper objectMapper, RedissonClient redisson) {
+    public FacebookVerticle(UserService userService, FSMService fsmService, ObjectMapper objectMapper, RedissonClient redisson, Set<CommandParser> commandParsers, Set<MessageStrategy> messageHandlers) {
         this.userService = userService;
         this.fsmService = fsmService;
         this.objectMapper = objectMapper;
         this.redisson = redisson;
+        this.commandParsers = commandParsers;
+        this.messageHandlers = messageHandlers;
     }
 
     @Override
@@ -120,46 +124,47 @@ public class FacebookVerticle extends AbstractVerticle {
         if (message.getDelivery() != null) return;
         final User user = userService.findOrCreate(MessengerType.FACEBOOK, message.getSender().getId());
         final RBucket<String> previousMessage = redisson.getBucket(String.format(RedisKeys.FACEBOOK_PREVIOUS_MESSAGE_TEMPLATE, user.getId()));
-        if (Objects.equals(previousMessage.get(), bodyJson))
+        final MessageStrategy handler = getMessageHandler(message);
+        if (Objects.equals(previousMessage.get(), handler.id(message)))
             return;
         else
-            previousMessage.set(bodyJson);
-        if (message.getItem() instanceof PostbackItem) {
-            handleMessage(user, message, message.getPostback().getPayload());
-        } else if (message.getMessage() != null && message.getMessage().getQuickReply() != null) {
-            handleMessage(user, message, message.getMessage().getQuickReply().getPayload());
-        } else if (message.getMessage() != null) {
-            handleMessage(user, message, message.getMessage().getText());
-        }
+            previousMessage.set(handler.id(message));
+        handleMessage(user, message, handler.payload(message));
+    }
+
+    private MessageStrategy getMessageHandler(MessagingItem message) {
+        return messageHandlers.stream()
+                .filter(parser -> parser.applies(message))
+                .findAny()
+                .orElseThrow(() -> new IllegalStateException("Wrong message format. Can't find appropriate strategy"));
     }
 
     private void handleMessage(User user, MessagingItem message, String text) {
-        final String payload = Optional.ofNullable(text).orElseGet(String::new);
-        if (Arrays.stream(Commands.values()).map(Enum::name).anyMatch(payload.toUpperCase()::equals)) {
-            fsmService.fire(user, Commands.valueOf(payload.toUpperCase()));
+        if (text.startsWith("[")) {
+            ExceptionUtils.wrapException(() -> Lists.newArrayList(objectMapper.readTree(text)))
+                    .stream()
+                    .map(node -> parsePayload(node.isTextual() ? node.asText() : node.toString()))
+                    .filter(Objects::nonNull)
+                    .forEach(command -> fireCommand(user, message, command));
         } else {
-            if (payload.startsWith("[")) {
-                ExceptionUtils.wrapException(() -> Lists.newArrayList(objectMapper.readTree(payload)))
-                        .stream()
-                        .map(node -> {
-                            if (node.toString().startsWith("{"))
-                                return ExceptionUtils.wrapException(() -> objectMapper.readValue(
-                                        objectMapper.readTree(node.toString()).get("value").toString(),
-                                        Class.forName(objectMapper.readTree(node.toString()).get("type").asText())));
-                            else if (Arrays.stream(Commands.values()).map(Enum::name).anyMatch(node.asText().toUpperCase()::equals)) {
-                                return Commands.valueOf(node.asText().toUpperCase());
-                            } else return null;
-                        })
-                        .filter(Objects::nonNull)
-                        .forEach(command -> {
-                            if (command instanceof Command) {
-                                fsmService.fire(user, (Command) command);
-                            } else if (Arrays.stream(Commands.values()).map(Enum::name).anyMatch(command.toString().toUpperCase()::equals)) {
-                                fsmService.fire(user, Commands.valueOf(command.toString().toUpperCase()));
-                            } else fsmService.fire(user, message);
-                        });
-            } else fsmService.fire(user, message);
+            fireCommand(user, message, parsePayload(text));
         }
+    }
+
+    private Object parsePayload(String payload) {
+        return commandParsers.stream()
+                .filter(parser -> parser.applies(payload))
+                .findAny()
+                .map(parser -> parser.handleMessage(payload))
+                .orElse(null);
+    }
+
+    private void fireCommand(User user, MessagingItem message, Object command) {
+        if (command instanceof Command) {
+            fsmService.fire(user, (Command) command);
+        } else if (command instanceof Commands) {
+            fsmService.fire(user, (Commands) command);
+        } else fsmService.fire(user, message);
     }
 
     private List<MessagingItem> lookupMessageEvent(final WebhookObject webhookObject) {
